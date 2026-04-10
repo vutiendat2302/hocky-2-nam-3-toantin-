@@ -14,7 +14,8 @@ public class StrassenMatMul {
     }
 
     public int[][] strassen(int[][] A, int[][] B) {
-
+        int[][] arr = new int[2][3];
+        return arr;
     }
 
     public int[][] add(int[][] A, int[][] B) {
