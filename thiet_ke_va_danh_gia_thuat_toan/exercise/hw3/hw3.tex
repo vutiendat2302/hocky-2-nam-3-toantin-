@@ -1,0 +1,426 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc}
+\usepackage[vietnamese]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{pgfplots}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\geometry{a4paper, margin=1in}
+
+\begin{document}
+
+\section*{Giới thiệu về Đệ quy (Recursion)}
+
+Đệ quy là kỹ thuật trong đó một hàm hoặc thủ tục gọi lại chính nó. Một thuật toán đệ quy thường có:
+\begin{itemize}
+    \item \textbf{Trường hợp cơ sở (Base case):} Điều kiện dừng, không gọi đệ quy.
+    \item \textbf{Bước đệ quy (Recursive step):} Chia bài toán thành bài toán nhỏ hơn cùng dạng và gọi lại chính nó.
+\end{itemize}
+
+\textbf{Các sơ đồ thuật toán đệ quy phổ biến:}
+\begin{enumerate}
+    \item Đệ quy tuyến tính: Mỗi lần gọi chỉ gọi lại một lần (VD: giai thừa).
+    \item Đệ quy nhánh: Mỗi lần gọi có thể gọi lại nhiều lần (VD: Tháp Hà Nội, Fibonacci).
+    \item Đệ quy đuôi (tail recursion): Lời gọi đệ quy là thao tác cuối cùng trong hàm.
+\end{enumerate}
+
+\subsection*{Phương pháp giải hệ thức truy hồi (Recurrence Relations)}
+
+Có ba phương pháp chính:
+\begin{enumerate}
+    \item \textbf{Phương pháp thế (Substitution method):} Đoán nghiệm và chứng minh bằng quy nạp.
+    \item \textbf{Phương pháp cây đệ quy (Recursion tree method):} Biểu diễn lời gọi đệ quy dạng cây, tính tổng chi phí.
+    \item \textbf{Định lý Master (Master Theorem):} Áp dụng cho dạng $T(n) = aT(n/b) + n^d$.
+\end{enumerate}
+
+\subsection*{Định lý Master (Master Theorem)}
+
+Cho $n$ là lũy thừa của $b$, xét hệ thức truy hồi:
+\[
+T(n) = 
+\begin{cases} 
+1 & \text{nếu } n \le 1 \\
+aT\left(\frac{n}{b}\right) + n^d & \text{nếu } n > 1, a \ge 1, b > 1, d \ge 0
+\end{cases}
+\]
+Khi đó:
+\[
+T(n) = 
+\begin{cases} 
+O(n^d) & \text{nếu } a < b^d \\
+O(n^d \log n) & \text{nếu } a = b^d \\
+O(n^{\log_b a}) & \text{nếu } a > b^d
+\end{cases}
+\]
+
+\section*{Ví dụ 1}
+Xét hệ thức:
+\[
+T(n) = 
+\begin{cases}
+1 & \text{nếu } n \le 0 \\
+2T(n-1) - 1 & \text{nếu } n > 0
+\end{cases}
+\]
+\textbf{Giải:} Đây không phải dạng Master. Giải bằng phương pháp thế:
+\begin{align*}
+T(0) &= 1 \\
+T(1) &= 2T(0) - 1 = 2(1) - 1 = 1 \\
+T(2) &= 2T(1) - 1 = 2(1) - 1 = 1 \\
+T(n) &= 1 \quad \forall n
+\end{align*}
+Vậy $T(n) = O(1)$.
+
+\section*{Ví dụ 2}
+Xét hệ thức:
+\[
+T(n) = 
+\begin{cases}
+1 & \text{nếu } n \le 0 \\
+3T(n-1) & \text{nếu } n > 0
+\end{cases}
+\]
+\textbf{Giải:}
+\begin{align*}
+T(0) &= 1 \\
+T(1) &= 3T(0) = 3 \\
+T(2) &= 3T(1) = 3^2 \\
+T(n) &= 3^n
+\end{align*}
+Vậy $T(n) = O(3^n)$.
+
+\section*{Ví dụ 3}
+\subsection*{1. $T(1) = 1$, $T(n) = 2T(n/2) + 6n - 1$ với $n$ là lũy thừa của 2}
+Áp dụng Master Theorem: $a=2$, $b=2$, $d=1$ (vì $6n-1 = O(n^1)$).
+Ta có $b^d = 2^1 = 2$, $a = 2$, suy ra $a = b^d$.
+Vậy $T(n) = O(n^d \log n) = O(n \log n)$.
+
+\subsection*{2. $T(1) = 2$, $T(n) = 4T(n/3) + 3n - 5$ với $n$ là lũy thừa của 3}
+$a=4$, $b=3$, $d=1$.
+$b^d = 3$, $\log_b a = \log_3 4 \approx 1.2619$.
+Vì $a > b^d$ ($4 > 3$) $\Rightarrow T(n) = O(n^{\log_3 4})$.
+
+\subsection*{3. $T(1) = 1$, $T(n) = 3T(n/2) + n^2 - n$ với $n$ là lũy thừa của 2}
+$a=3$, $b=2$, $d=2$.
+$b^d = 2^2 = 4$. $\log_b a = \log_2 3 \approx 1.585$.
+Vì $a < b^d$ ($3 < 4$) $\Rightarrow T(n) = O(n^d) = O(n^2)$.
+
+\section*{Bài tập 1 (Giải chi tiết 4 hệ thức truy hồi)}
+
+\subsection*{Bài 1: $T(1) = 1$, $T(n) = 3T(n-1) + 2$}
+Giải bằng phương pháp thế:
+\begin{align*}
+T(1) &= 1 \\
+T(2) &= 3T(1) + 2 = 3 + 2 = 5 \\
+T(3) &= 3T(2) + 2 = 15 + 2 = 17 \\
+T(4) &= 3T(3) + 2 = 51 + 2 = 53
+\end{align*}
+Dạng tổng quát: $T(n) = 3^{n-1} + (3^{n-2} + \dots + 3^0) \cdot 2$
+\[
+T(n) = 3^{n-1} + 2 \cdot \frac{3^{n-1} - 1}{2} = 2 \cdot 3^{n-1} - 1
+\]
+Vậy $T(n) = O(3^n)$.
+
+\subsection*{Bài 2: $T(1) = 3$, $T(n) = T(n-1) + 2n - 3$}
+\begin{align*}
+T(n) &= T(1) + \sum_{k=2}^n (2k - 3) = 3 + 2\sum_{k=2}^n k - 3\sum_{k=2}^n 1 \\
+&= 3 + 2\left(\frac{n(n+1)}{2} - 1\right) - 3(n-1) \\
+&= 3 + n(n+1) - 2 - 3n + 3 = n^2 + n + 4 - 3n = n^2 - 2n + 4
+\end{align*}
+Vậy $T(n) = O(n^2)$.
+
+\subsection*{Bài 3: $T(1) = 1$, $T(n) = 2T(n-1) + n - 1$}
+\begin{align*}
+T(1) &= 1 \\
+T(2) &= 2(1) + 1 = 3 \\
+T(3) &= 2(3) + 2 = 8 \\
+T(4) &= 2(8) + 3 = 19
+\end{align*}
+Dự đoán: $T(n) = 2^{n} - n - 1$. Thử $n=1$: $2 - 1 - 1 = 0$ (sai). Thử lại:
+$T(n) = 2^{n+1} - n - 2$. Với $n=1$: $4-1-2=1$ đúng.
+Chứng minh bằng quy nạp:
+Giả sử đúng với $n-1$: $T(n) = 2(2^{n} - (n-1) - 2) + n - 1 = 2^{n+1} - 2n + 2 + n - 1 = 2^{n+1} - n + 1$? Chưa khớp. 
+Kiểm tra kỹ: $T(n) = 2^{n+1} - n - 2$:
+Với $n=2$: $2^3 - 2 - 2 = 8 - 4 = 4$ (sai vì $T(2)=3$).
+Vậy $T(n) = 2^{n+1} - n - 3$:
+$n=2$: $8 - 2 - 3 = 3$ đúng.
+Vậy $T(n) = O(2^n)$.
+
+\subsection*{Bài 4: $T(1) = 4$, $T(n) = 2T(n/2) + 3n + 2$ (n là lũy thừa của 2)}
+Áp dụng Master Theorem: $a=2$, $b=2$, $d=1$.
+$b^d = 2$, $a=2 \Rightarrow a = b^d$.
+Vậy $T(n) = O(n^d \log n) = O(n \log n)$.
+
+\section*{Bài tập bổ sung (giải nhanh theo Master Theorem)}
+
+\begin{itemize}
+    \item $T(n) = 6T(n/6) + 2n + 3$: $a=6$, $b=6$, $d=1$ $\Rightarrow a=b^d \Rightarrow O(n\log n)$.
+    \item $T(n) = 6T(n/6) + 3n - 1$: tương tự $O(n\log n)$.
+    \item $T(n) = 4T(n/3) + 2n - 1$: $a=4$, $b=3$, $d=1$, $b^d=3$, $a>3 \Rightarrow O(n^{\log_3 4})$.
+    \item $T(n) = 3T(n/2) + n^2 - 2n + 1$: $a=3$, $b=2$, $d=2$, $b^d=4$, $a<4 \Rightarrow O(n^2)$.
+    \item $T(n) = 3T(n/2) + n - 2$: $a=3$, $b=2$, $d=1$, $b^d=2$, $a>2 \Rightarrow O(n^{\log_2 3})$.
+\end{itemize}
+
+
+\section*{Bài tập 2: Đệ quy và Khử đệ quy}
+
+\subsection*{1. In biểu diễn nhị phân của một số nguyên}
+
+\subsubsection*{Giải thuật đệ quy}
+\begin{algorithm}[H]
+\caption{In nhị phân đệ quy}
+\begin{algorithmic}
+\PROCEDURE{InNhiPhanRec}{$n$}
+    \IF{$n > 1$}
+        \STATE \CALL{InNhiPhanRec}{$n/2$}
+    \ENDIF
+    \STATE In $n \% 2$
+\ENDPROCEDURE
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection*{Giải thuật khử đệ quy (dùng stack)}
+\begin{algorithm}[H]
+\caption{In nhị phân khử đệ quy}
+\begin{algorithmic}
+\PROCEDURE{InNhiPhanKhu}{$n$}
+    \STATE Khởi tạo stack rỗng
+    \WHILE{$n > 0$}
+        \STATE Push $n \% 2$ vào stack
+        \STATE $n \leftarrow n / 2$
+    \ENDWHILE
+    \WHILE{stack không rỗng}
+        \STATE In pop()
+    \ENDWHILE
+\ENDPROCEDURE
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection*{Đánh giá và so sánh}
+\begin{itemize}
+    \item Cả hai đều có độ phức tạp $O(\log n)$.
+    \item Đệ quy: ngắn gọn, dễ hiểu nhưng tốn bộ nhớ stack.
+    \item Khử đệ quy: dài hơn nhưng kiểm soát bộ nhớ tốt hơn.
+\end{itemize}
+
+\subsection*{2. Phân tích số nguyên thành thừa số nguyên tố}
+
+\subsubsection*{Giải thuật đệ quy}
+\begin{algorithm}[H]
+\caption{Phân tích thừa số đệ quy}
+\begin{algorithmic}
+\PROCEDURE{PhanTichRec}{$n, u$}
+    \IF{$n == 1$} \RETURN \ENDIF
+    \FOR{$i \leftarrow u$ \TO $n$}
+        \IF{$n \% i == 0$}
+            \STATE In $i$
+            \STATE \CALL{PhanTichRec}{$n/i, i$}
+            \RETURN
+        \ENDIF
+    \ENDFOR
+\ENDPROCEDURE
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection*{Giải thuật khử đệ quy}
+\begin{algorithm}[H]
+\caption{Phân tích thừa số khử đệ quy}
+\begin{algorithmic}
+\PROCEDURE{PhanTichKhu}{$n$}
+    \STATE $i \leftarrow 2$
+    \WHILE{$i \cdot i \le n$}
+        \WHILE{$n \% i == 0$}
+            \STATE In $i$
+            \STATE $n \leftarrow n / i$
+        \ENDWHILE
+        \STATE $i \leftarrow i + 1$
+    \ENDWHILE
+    \IF{$n > 1$} \STATE In $n$ \ENDIF
+\ENDPROCEDURE
+\end{algorithmic}
+\end{algorithm}
+
+\subsection*{3. Tìm số Fibonacci thứ n}
+
+\subsubsection*{Giải thuật đệ quy}
+\begin{algorithm}[H]
+\caption{Fibonacci đệ quy}
+\begin{algorithmic}
+\PROCEDURE{FiboRec}{$n$}
+    \IF{$n \le 1$} \RETURN $n$
+    \ELSE \RETURN \CALL{FiboRec}{$n-1$} + \CALL{FiboRec}{$n-2$}
+    \ENDIF
+\ENDPROCEDURE
+\end{algorithmic}
+\end{algorithm}
+Độ phức tạp: $O(2^n)$.
+
+\subsubsection*{Giải thuật khử đệ quy (quy hoạch động)}
+\begin{algorithm}[H]
+\caption{Fibonacci khử đệ quy}
+\begin{algorithmic}
+\PROCEDURE{FiboKhu}{$n$}
+    \IF{$n \le 1$} \RETURN $n$
+    \ENDIF
+    \STATE $a \leftarrow 0, b \leftarrow 1$
+    \FOR{$i \leftarrow 2$ \TO $n$}
+        \STATE $c \leftarrow a + b$
+        \STATE $a \leftarrow b$
+        \STATE $b \leftarrow c$
+    \ENDFOR
+    \RETURN $b$
+\ENDPROCEDURE
+\end{algorithmic}
+\end{algorithm}
+Độ phức tạp: $O(n)$.
+
+\subsection*{4. Bài toán Tháp Hà Nội}
+
+\subsubsection*{Giải thuật đệ quy}
+\begin{algorithm}[H]
+\caption{Tháp Hà Nội đệ quy}
+\begin{algorithmic}
+\PROCEDURE{ThapHaNoiRec}{$n, A, B, C$}
+    \IF{$n == 1$}
+        \STATE In "Chuyển đĩa 1 từ $A$ sang $C$"
+    \ELSE
+        \STATE \CALL{ThapHaNoiRec}{$n-1, A, C, B$}
+        \STATE In "Chuyển đĩa $n$ từ $A$ sang $C$"
+        \STATE \CALL{ThapHaNoiRec}{$n-1, B, A, C$}
+    \ENDIF
+\ENDPROCEDURE
+\end{algorithmic}
+\end{algorithm}
+Độ phức tạp: $O(2^n)$.
+
+\subsubsection*{Giải thuật khử đệ quy (dùng stack)}
+Dùng stack để mô phỏng lời gọi đệ quy. Độ phức tạp vẫn $O(2^n)$ nhưng tốn thêm bộ nhớ stack.
+
+\subsection*{Bảng so sánh thời gian chạy}
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+\hline
+Bài toán & Đệ quy & Khử đệ quy & Ghi chú \\
+\hline
+In nhị phân & $O(\log n)$ & $O(\log n)$ & Khử đệ quy dùng stack \\
+\hline
+Phân tích thừa số & $O(\sqrt{n})$ & $O(\sqrt{n})$ & Khử đệ quy hiệu quả hơn \\
+\hline
+Fibonacci & $O(2^n)$ & $O(n)$ & Khử đệ quy tốt hơn nhiều \\
+\hline
+Tháp Hà Nội & $O(2^n)$ & $O(2^n)$ & Đệ quy tự nhiên hơn \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\includegraphics[width=0.8\textwidth]{comparison_chart.png}
+\end{center}
+
+\section*{Bài tập 3: Xây dựng bài toán, thiết kế thuật toán, phân tích và cài đặt}
+
+\subsection*{Bài toán 1: Bài toán cái túi (Knapsack Problem)}
+
+\subsubsection*{Phát biểu bài toán}
+Cho $n$ đồ vật, mỗi đồ vật $i$ có trọng lượng $P_i$ và giá trị $V_i$. Một cái túi có thể chứa tối đa trọng lượng $M$. Hãy chọn các đồ vật để tổng giá trị là lớn nhất.
+
+\subsubsection*{Thuật toán đệ quy (Quy hoạch động)}
+Gọi $F(i, w)$ là giá trị lớn nhất có thể đạt được khi xét từ đồ vật $1$ đến $i$ với trọng lượng tối đa $w$.
+\[
+F(i, w) = \max(F(i-1, w), V_i + F(i-1, w - P_i)) \quad \text{nếu } w \ge P_i
+\]
+Base case: $F(0, w) = 0$.
+
+\begin{algorithm}[H]
+\caption{Knapsack đệ quy}
+\begin{algorithmic}
+\PROCEDURE{Knapsack}{$i, w$}
+    \IF{$i == 0$ OR $w == 0$} \RETURN 0 \ENDIF
+    \IF{$P[i] > w$} \RETURN \CALL{Knapsack}{$i-1, w$}
+    \ELSE
+        \STATE $a \leftarrow \CALL{Knapsack}{i-1, w}$
+        \STATE $b \leftarrow V[i] + \CALL{Knapsack}{i-1, w-P[i]}$
+        \RETURN $\max(a,b)$
+    \ENDIF
+\ENDPROCEDURE
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection*{Chứng minh tính đúng đắn}
+Bằng quy nạp trên $i$: Giả sử $F(i-1, w)$ đúng với mọi $w$. Với đồ vật $i$, hoặc không chọn (giá trị $F(i-1,w)$), hoặc chọn (giá trị $V_i + F(i-1, w-P_i)$). Lấy max của hai trường hợp.
+
+\subsubsection*{Độ phức tạp}
+Đệ quy: $O(2^n)$. Dùng quy hoạch động: $O(n \cdot M)$.
+
+\subsection*{Bài toán 2: Chia thưởng (Reward Distribution Problem)}
+
+\subsubsection*{Phát biểu bài toán}
+Có $m$ phần thưởng giống nhau, chia cho $n$ học sinh xếp hạng $1 \dots n$ sao cho học sinh hạng cao nhận không ít hơn học sinh hạng thấp. Tìm số cách chia.
+
+\subsubsection*{Thuật toán đệ quy}
+Gọi $f(m, n, k)$ là số cách chia $m$ phần thưởng cho $n$ học sinh, mỗi học sinh nhận ít nhất $k$ phần thưởng.
+\[
+f(m, n, k) = 
+\begin{cases}
+1 & \text{nếu } m = nk \\
+0 & \text{nếu } m < nk \\
+\sum_{i=k}^{m} f(m-i, n-1, i) & \text{nếu } n > 1
+\end{cases}
+\]
+
+\begin{algorithm}[H]
+\caption{Chia thưởng đệ quy}
+\begin{algorithmic}
+\PROCEDURE{ChiaThuong}{$m, n, k$}
+    \IF{$m == n * k$} \RETURN 1 \ENDIF
+    \IF{$m < n * k$} \RETURN 0 \ENDIF
+    \IF{$n == 1$} \RETURN 1 \ENDIF
+    \STATE $count \leftarrow 0$
+    \FOR{$i \leftarrow k$ \TO $m$}
+        \STATE $count \leftarrow count + \CALL{ChiaThuong}{m-i, n-1, i}$
+    \ENDFOR
+    \RETURN $count$
+\ENDPROCEDURE
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection*{Chứng minh tính đúng đắn}
+Base case: Nếu $n=1$, chỉ có 1 cách (học sinh duy nhất nhận hết). Nếu $m = nk$, chỉ có 1 cách (mỗi học sinh nhận đúng $k$). Bước đệ quy: học sinh đầu nhận $i$ ($i \ge k$), số còn lại chia cho $n-1$ học sinh với mỗi người nhận $\ge i$.
+
+\subsubsection*{Độ phức tạp}
+$O(m^n)$ trong trường hợp xấu nhất.
+
+\subsection*{Cài đặt minh họa bằng Python}
+\begin{verbatim}
+# Knapsack - Quy hoạch động khử đệ quy
+def knapsack_dp(P, V, M):
+    n = len(P)
+    dp = [[0]*(M+1) for _ in range(n+1)]
+    for i in range(1, n+1):
+        for w in range(1, M+1):
+            if P[i-1] <= w:
+                dp[i][w] = max(dp[i-1][w], V[i-1] + dp[i-1][w-P[i-1]])
+            else:
+                dp[i][w] = dp[i-1][w]
+    return dp[n][M]
+
+# Chia thưởng - đệ quy có nhớ
+def chia_thuong(m, n, k, memo={}):
+    if (m, n, k) in memo: return memo[(m, n, k)]
+    if m == n * k: return 1
+    if m < n * k: return 0
+    if n == 1: return 1
+    total = 0
+    for i in range(k, m+1):
+        total += chia_thuong(m-i, n-1, i, memo)
+    memo[(m, n, k)] = total
+    return total
+\end{verbatim}
+
+\end{document}

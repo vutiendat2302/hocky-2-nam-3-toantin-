@@ -1,11 +1,9 @@
 package assignment5_backtracking_brute_force;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
+
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
-import static org.junit.jupiter.api.Assertions.*;
 
 public class BinaryStringGenerator {
 
@@ -19,12 +17,6 @@ public class BinaryStringGenerator {
     }
 
     public void backtracking(String s, int n) {
-        if (s.length() == n) {
-            System.out.println(s);
-            return;
-        }
 
-        backtracking(s + "0", n);
-        backtracking(s + "1", n);
     }
 }
