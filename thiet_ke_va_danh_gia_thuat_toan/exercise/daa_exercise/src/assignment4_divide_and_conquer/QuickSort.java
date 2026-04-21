@@ -37,14 +37,27 @@ public class QuickSort {
      * - cac phan tu lon hon pivot nam ben phai pivot
      * - khong yeu cau sap xep hoan chinh hai phia
      *
-     * @param low chi so bat dau cua doan phan hoahc
+     * @param low chi so bat dau cua doan phan hoach
      * @param high chi so ket thuc cua doan phan hoach
      * @return chi so vi tri cuoi cung cua pivot
      */
 
     public int partition(int low, int high) {
         int pivot = array[high];
-        return -1;
+        int i = low - 1;
+
+        for (int j = low; j < high; j++) {
+            if (array[j] <= pivot) {
+                i++;
+                swap(i, j);
+            }
+        }
+
+        // Dua pivot ve dung vi tri
+
+        swap(i + 1, high);
+        return i + 1;
+
     }
 
     /**
@@ -55,7 +68,11 @@ public class QuickSort {
      */
 
     public void sort(int low, int high) {
-
+        if (low < high) {
+            int pi = partition(low, high);
+            sort(low, pi - 1);
+            sort(pi + 1, high);
+        }
     }
 
     /**

@@ -1,0 +1,2285 @@
+\documentclass{article}
+\usepackage[utf8]{vietnam}
+\usepackage{amsmath, amssymb, algorithmic, algpseudocode}
+\usepackage{geometry}
+\geometry{a4paper, margin=2.5cm}
+
+\title{Chiến lược thiết kế thuật toán: \textbf{Chia để trị}}
+\author{Vu Tien Dat}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Giới thiệu chung}
+
+\textbf{Chia để trị (Divide and Conquer)} là một trong những chiến lược quan trọng nhất trong thiết kế thuật toán. Tư tưởng chính: 
+
+\begin{quote}
+\itshape
+``Chia bài toán lớn thành các bài toán con nhỏ hơn, giải chúng một cách độc lập (thường bằng đệ quy), sau đó tổng hợp kết quả để được lời giải cho bài toán ban đầu.''
+\end{quote}
+
+\section{Ba bước cơ bản}
+
+Mọi thuật toán chia để trị đều tuân theo ba bước:
+
+\begin{enumerate}
+    \item \textbf{Chia (Divide)}: Phân bài toán kích thước \(n\) thành \(a\) bài toán con, mỗi bài có kích thước \(\frac{n}{b}\) (thường \(a = b\), ví dụ: 2 bài con kích thước \(n/2\)).
+    \item \textbf{Trị (Conquer)}: Giải đệ quy các bài toán con. Nếu bài toán con đủ nhỏ (kích thước cơ sở), giải trực tiếp.
+    \item \textbf{Tổng hợp (Combine)}: Kết hợp các lời giải của bài toán con để tạo lời giải cho bài toán gốc.
+\end{enumerate}
+
+\section{Lược đồ giải thuật tổng quát}
+
+Giả sử hàm \textsc{DivideAndConquer}(\(P\)) giải bài toán \(P\) có kích thước \(n\).
+
+\begin{algorithmic}[1]
+\Function{DivideAndConquer}{$P$}
+    \If{$n \le n_0$} \Comment{Trường hợp cơ sở}
+        \State \Return \textsc{SolveDirectly}($P$)
+    \Else
+        \State Chia $P$ thành $P_1, P_2, \dots, P_a$ \Comment{Bước chia}
+        \For{$i = 1$ \textbf{to} $a$}
+            \State $s_i \gets$ \Call{DivideAndConquer}{$P_i$} \Comment{Bước trị (đệ quy)}
+        \EndFor
+        \State $s \gets$ \textsc{Combine}($s_1, s_2, \dots, s_a$) \Comment{Bước tổng hợp}
+        \State \Return $s$
+    \EndIf
+\EndFunction
+\end{algorithmic}
+
+Trong đó:
+\begin{itemize}
+    \item \(n_0\): ngưỡng đủ nhỏ để giải trực tiếp (thường \(n_0 = 1\) hoặc \(n_0 = 2\)).
+    \item Hàm \textsc{SolveDirectly}: giải bài toán con rất nhỏ.
+    \item Hàm \textsc{Combine}: tổng hợp kết quả.
+\end{itemize}
+
+\section{Hệ thức truy hồi tổng quát}
+
+Gọi \(T(n)\) là thời gian thực hiện thuật toán chia để trị với kích thước đầu vào \(n\). Ta có:
+
+\[
+T(n) = 
+\begin{cases}
+O(1) & \text{nếu } n \le n_0 \\
+a \cdot T\left(\dfrac{n}{b}\right) + f(n) & \text{nếu } n > n_0
+\end{cases}
+\]
+
+Trong đó:
+\begin{itemize}
+    \item \(a\): số lượng bài toán con (\(\ge 1\)).
+    \item \(b\): hệ số giảm kích thước (\(b > 1\)).
+    \item \(f(n)\): chi phí để chia bài toán và tổng hợp kết quả.
+\end{itemize}
+
+\section{Định lý thợ (Master Theorem) để đánh giá}
+
+Cho \(T(n) = aT\left(\frac{n}{b}\right) + f(n)\) với \(a \ge 1, b > 1\).
+
+So sánh \(f(n)\) với \(n^{\log_b a}\):
+
+\begin{enumerate}
+    \item Nếu \(f(n) = O(n^{\log_b a - \varepsilon})\) với \(\varepsilon > 0\):  
+    \[
+    T(n) = \Theta(n^{\log_b a})
+    \]
+    \item Nếu \(f(n) = \Theta(n^{\log_b a} \log^k n)\) với \(k \ge 0\):  
+    \[
+    T(n) = \Theta(n^{\log_b a} \log^{k+1} n)
+    \]
+    \item Nếu \(f(n) = \Omega(n^{\log_b a + \varepsilon})\) và \(a f\left(\frac{n}{b}\right) \le c f(n)\) với \(c < 1\):  
+    \[
+    T(n) = \Theta(f(n))
+    \]
+\end{enumerate}
+
+\section{Ví dụ minh họa: Tìm max và min trong mảng}
+
+Xét bài toán tìm cả phần tử lớn nhất và nhỏ nhất của mảng \(A[1..n]\). Thuật toán chia để trị:
+
+\begin{algorithmic}[1]
+\Function{MinMax}{$A, l, r$}
+    \If{$l = r$} \Comment{1 phần tử}
+        \State \Return $(A[l], A[l])$
+    \ElsIf{$l + 1 = r$} \Comment{2 phần tử}
+        \State \Return $(\min(A[l], A[r]), \max(A[l], A[r]))$
+    \Else
+        \State $m \gets \lfloor (l+r)/2 \rfloor$
+        \State $(min1, max1) \gets$ \Call{MinMax}{$A, l, m$}
+        \State $(min2, max2) \gets$ \Call{MinMax}{$A, m+1, r$}
+        \State $min\_all \gets \min(min1, min2)$
+        \State $max\_all \gets \max(max1, max2)$
+        \State \Return $(min\_all, max\_all)$
+    \EndIf
+\EndFunction
+\end{algorithmic}
+
+\subsection{Phân tích độ phức tạp}
+
+Số phép so sánh \(T(n)\) thỏa mãn:
+
+\[
+T(n) = 
+\begin{cases}
+0 & n = 1 \\
+1 & n = 2 \\
+2T\left(\dfrac{n}{2}\right) + 2 & n > 2
+\end{cases}
+\]
+
+Giải hệ thức trên với \(n = 2^k\):
+
+\[
+\begin{aligned}
+T(n) &= 2T\left(\frac{n}{2}\right) + 2 \\
+&= 2\left[2T\left(\frac{n}{4}\right) + 2\right] + 2 = 4T\left(\frac{n}{4}\right) + 4 + 2 \\
+&= \dots \\
+&= 2^{k-1}T(2) + \sum_{i=1}^{k-1} 2^i \\
+&= 2^{k-1}\cdot 1 + (2^k - 2) \\
+&= \frac{3n}{2} - 2
+\end{aligned}
+\]
+
+Vậy \(T(n) = O(n)\). Cách này tốt hơn phương pháp duyệt tuần tự cần \(2n-2\) phép so sánh.
+
+\section{Các bài toán kinh điển áp dụng chia để trị}
+
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Bài toán} & \textbf{Công thức truy hồi} & \textbf{Độ phức tạp} & \textbf{Ghi chú} \\
+\hline
+Tìm kiếm nhị phân & \(T(n) = T(n/2) + O(1)\) & \(O(\log n)\) & \\
+\hline
+Sắp xếp trộn (Merge Sort) & \(T(n) = 2T(n/2) + O(n)\) & \(O(n \log n)\) & \\
+\hline
+Sắp xếp nhanh (QuickSort) & \(T(n) = T(k) + T(n-k-1) + O(n)\) & TB: \(O(n \log n)\) & Xấu: \(O(n^2)\) \\
+\hline
+Nhân Strassen & \(T(n) = 7T(n/2) + O(n^2)\) & \(O(n^{\log_2 7}) \approx O(n^{2.81})\) & Nhân ma trận \\
+\hline
+Tìm cặp điểm gần nhất & \(T(n) = 2T(n/2) + O(n)\) & \(O(n \log n)\) & Hình học \\
+\hline
+\end{tabular}
+
+\section{Lưu ý khi học cho sinh viên}
+
+\begin{itemize}
+    \item \textbf{Đệ quy là trái tim} của chia để trị — cần thành thạo viết và phân tích đệ quy.
+    \item \textbf{Trường hợp cơ sở} phải đúng, nếu không thuật toán sẽ không dừng.
+    \item \textbf{Bước tổng hợp} quyết định độ phức tạp: nếu tổng hợp tốn \(O(n^2)\) thì dù chia tốt cũng không hiệu quả.
+    \item Không phải lúc nào chia để trị cũng tối ưu: với dữ liệu nhỏ, thuật toán đơn giản có thể nhanh hơn.
+\end{itemize}
+
+% ==================== CÁC VÍ DỤ MINH HỌA ====================
+
+\section{Ví dụ 1}
+
+Xét một thuật toán \(A\) giải quyết bài toán bằng cách:
+\begin{itemize}
+    \item Chia bài toán ban đầu thành \(5\) bài toán con, mỗi bài toán có kích thước bằng một nửa bài toán gốc.
+    \item Sau đó giải đệ quy từng bài toán con.
+    \item Cuối cùng kết hợp các lời giải lại với nhau trong thời gian tuyến tính (linear time).
+\end{itemize}
+
+\textbf{Hỏi:} Độ phức tạp của thuật toán này là gì?
+
+\subsection{Thiết lập hệ thức truy hồi}
+
+Gọi \(T(n)\) là thời gian thực hiện thuật toán với kích thước đầu vào \(n\).
+
+Theo mô tả:
+\begin{itemize}
+    \item Chia bài toán thành \(a = 5\) bài toán con.
+    \item Mỗi bài toán con có kích thước \(\dfrac{n}{2}\) \(\Rightarrow b = 2\).
+    \item Thời gian kết hợp là tuyến tính: \(f(n) = O(n)\).
+\end{itemize}
+
+Vậy ta có hệ thức truy hồi:
+
+\[
+\boxed{T(n) = 5 \cdot T\left(\frac{n}{2}\right) + O(n)}
+\]
+
+\subsection{Áp dụng Định lý Thợ (Master Theorem)}
+
+Định lý Thợ cho hệ thức:
+\[
+T(n) = a \cdot T\left(\frac{n}{b}\right) + f(n)
+\]
+với \(a \ge 1\), \(b > 1\).
+
+\subsubsection{Bước 1: Tính \(n^{\log_b a}\)}
+
+\[
+\log_b a = \log_2 5
+\]
+\[
+n^{\log_b a} = n^{\log_2 5}
+\]
+
+Ta biết:
+\[
+\log_2 4 = 2, \quad \log_2 8 = 3
+\]
+Vì \(4 < 5 < 8\) nên:
+\[
+2 < \log_2 5 < 3
+\]
+Cụ thể:
+\[
+\log_2 5 \approx 2.321928
+\]
+
+\subsubsection{Bước 2: So sánh \(f(n)\) với \(n^{\log_b a}\)}
+
+\[
+f(n) = O(n) \quad \text{(tuyến tính)}
+\]
+\[
+n^{\log_b a} = n^{\log_2 5} \approx n^{2.3219}
+\]
+
+Rõ ràng:
+\[
+n = n^{1} \quad \text{và} \quad 1 < \log_2 5 \approx 2.3219
+\]
+
+Do đó:
+\[
+f(n) = O\left(n^{\log_b a - \varepsilon}\right) \quad \text{với} \quad \varepsilon = \log_2 5 - 1 > 0
+\]
+
+\subsubsection{Bước 3: Kết luận theo trường hợp 1 của Master Theorem}
+
+Trường hợp 1: Nếu \(f(n) = O\left(n^{\log_b a - \varepsilon}\right)\) với \(\varepsilon > 0\) thì:
+\[
+T(n) = \Theta\left(n^{\log_b a}\right)
+\]
+
+Vậy:
+\[
+\boxed{T(n) = \Theta\left(n^{\log_2 5}\right)}
+\]
+
+\subsection{Kết quả cuối cùng}
+
+\[
+T(n) = \Theta\left(n^{\log_2 5}\right) \approx \Theta\left(n^{2.321928}\right)
+\]
+
+\subsection{Nhận xét}
+
+\begin{itemize}
+    \item Thuật toán này có độ phức tạp \textbf{lớn hơn} \(O(n^2)\) nhưng \textbf{nhỏ hơn} \(O(n^3)\).
+    \item So sánh với một số thuật toán nổi tiếng:
+    \begin{itemize}
+        \item Sắp xếp trộn (Merge Sort): \(O(n \log n)\)
+        \item Nhân ma trận thông thường: \(O(n^3)\)
+        \item Nhân ma trận Strassen: \(O(n^{\log_2 7}) \approx O(n^{2.807})\)
+        \item Thuật toán này: \(O(n^{\log_2 5}) \approx O(n^{2.322})\)
+    \end{itemize}
+    \item Thuật toán A chậm hơn Strassen một chút nhưng nhanh hơn nhiều so với giải pháp bậc ba \(O(n^3)\).
+\end{itemize}
+
+\section{Ví dụ 2}
+
+Tương tự như Ví dụ 1, một thuật toán \(B\) giải bài toán kích thước \(n\) bằng cách:
+\begin{itemize}
+    \item Đệ quy giải \(2\) bài toán con, mỗi bài toán có kích thước \(n - 1\).
+    \item Sau đó kết hợp các lời giải trong thời gian hằng số (constant time).
+\end{itemize}
+
+\textbf{Hỏi:} Độ phức tạp của thuật toán này là gì?
+
+\subsection{Thiết lập hệ thức truy hồi}
+
+Gọi \(T(n)\) là thời gian thực hiện thuật toán \(B\) với kích thước đầu vào \(n\).
+
+Theo mô tả:
+\begin{itemize}
+    \item Chia bài toán thành \(a = 2\) bài toán con.
+    \item Mỗi bài toán con có kích thước \(n - 1\) (giảm đi 1 đơn vị, \textbf{không phải} chia theo tỷ lệ).
+    \item Thời gian kết hợp là hằng số: \(f(n) = O(1)\).
+\end{itemize}
+
+Vậy ta có hệ thức truy hồi:
+
+\[
+\boxed{T(n) = 2 \cdot T(n - 1) + O(1)}
+\]
+
+\subsection{Điểm đặc biệt: Không áp dụng được Master Theorem}
+
+\textbf{Lưu ý quan trọng:} 
+Định lý Thợ (Master Theorem) chỉ áp dụng cho hệ thức dạng:
+\[
+T(n) = a \cdot T\left(\frac{n}{b}\right) + f(n)
+\]
+với \(b > 1\) (kích thước bài toán con giảm theo tỷ lệ).
+
+Ở đây, kích thước bài toán con là \(n - 1\) (giảm tuyến tính, không phải giảm theo tỷ lệ). Do đó, ta \textbf{không thể dùng Master Theorem} mà phải giải trực tiếp bằng phương pháp khai triển hoặc phương pháp thế.
+
+\subsection{Giải hệ thức truy hồi}
+
+\subsubsection{Bước 1: Khai triển lặp}
+
+Ta có:
+\[
+T(n) = 2T(n-1) + c
+\]
+với \(c\) là hằng số (thời gian kết hợp).
+
+Tiếp tục khai triển \(T(n-1)\):
+\[
+T(n-1) = 2T(n-2) + c
+\]
+\[
+T(n) = 2[2T(n-2) + c] + c = 4T(n-2) + 2c + c = 4T(n-2) + (2^2 - 1)c
+\]
+
+Khai triển \(T(n-2)\):
+\[
+T(n-2) = 2T(n-3) + c
+\]
+\[
+T(n) = 4[2T(n-3) + c] + 3c = 8T(n-3) + 4c + 3c = 8T(n-3) + (2^3 - 1)c
+\]
+
+\subsubsection{Bước 2: Tìm quy luật}
+
+Sau \(k\) bước khai triển:
+\[
+T(n) = 2^k T(n-k) + (2^k - 1)c
+\]
+
+\subsubsection{Bước 3: Điều kiện dừng}
+
+Khi \(n - k = 1\) (bài toán cơ sở), ta có \(k = n - 1\).
+Gọi \(T(1) = c_0\) là hằng số (trường hợp cơ sở).
+
+Thay vào:
+\[
+T(n) = 2^{n-1} T(1) + (2^{n-1} - 1)c
+\]
+\[
+T(n) = 2^{n-1} c_0 + c \cdot 2^{n-1} - c
+\]
+\[
+T(n) = (c_0 + c) \cdot 2^{n-1} - c
+\]
+
+\subsubsection{Bước 4: Kết luận}
+
+Vì \((c_0 + c)\) và \(c\) là các hằng số:
+\[
+T(n) = O(2^{n-1}) = O(2^n)
+\]
+
+\subsection{Kết quả cuối cùng}
+
+\[
+\boxed{T(n) = O(2^n)}
+\]
+
+Độ phức tạp của thuật toán \(B\) là \textbf{hàm mũ}.
+
+\subsection{Nhận xét và so sánh}
+
+\begin{itemize}
+    \item Thuật toán \(B\) có độ phức tạp \textbf{rất lớn} (\(O(2^n)\)), không khả thi cho \(n\) lớn.
+    \item Nguyên nhân: mỗi bước chỉ giảm kích thước đi 1 nhưng lại nhân đôi số lượng bài toán con.
+    \item So sánh với Ví dụ 1:
+    \begin{itemize}
+        \item Ví dụ 1: \(T(n) = 5T(n/2) + O(n) \Rightarrow \Theta(n^{\log_2 5}) \approx \Theta(n^{2.32})\) (đa thức).
+        \item Ví dụ 2: \(T(n) = 2T(n-1) + O(1) \Rightarrow O(2^n)\) (hàm mũ).
+    \end{itemize}
+    \item Đây là ví dụ điển hình cho thấy việc \textbf{giảm kích thước theo hằng số} (như \(n-1\)) thường dẫn đến độ phức tạp mũ, trong khi \textbf{giảm theo tỷ lệ} (như \(n/2\)) dẫn đến độ phức tạp đa thức hoặc logarit.
+\end{itemize}
+
+\section{Ví dụ 3}
+
+Lại tương tự như Ví dụ 1, một thuật toán \(C\) giải bài toán kích thước \(n\) bằng cách:
+\begin{itemize}
+    \item Chia bài toán thành \(9\) bài toán con, mỗi bài toán có kích thước \(n/3\).
+    \item Sau đó giải đệ quy từng bài toán con.
+    \item Cuối cùng kết hợp các lời giải trong thời gian \(O(n^2)\).
+\end{itemize}
+
+\textbf{Hỏi:} Độ phức tạp của thuật toán này là gì?
+
+\subsection{Thiết lập hệ thức truy hồi}
+
+Gọi \(T(n)\) là thời gian thực hiện thuật toán \(C\) với kích thước đầu vào \(n\).
+
+Theo mô tả:
+\begin{itemize}
+    \item Số bài toán con: \(a = 9\)
+    \item Mỗi bài toán con có kích thước: \(\dfrac{n}{3}\) \(\Rightarrow b = 3\)
+    \item Thời gian kết hợp: \(f(n) = O(n^2)\)
+\end{itemize}
+
+Vậy ta có hệ thức truy hồi:
+
+\[
+\boxed{T(n) = 9 \cdot T\left(\frac{n}{3}\right) + O(n^2)}
+\]
+
+\subsection{Áp dụng Định lý Thợ (Master Theorem)}
+
+Định lý Thợ cho hệ thức:
+\[
+T(n) = a \cdot T\left(\frac{n}{b}\right) + f(n)
+\]
+với \(a \ge 1\), \(b > 1\).
+
+\subsubsection{Bước 1: Tính \(n^{\log_b a}\)}
+
+\[
+\log_b a = \log_3 9
+\]
+
+Vì \(9 = 3^2\), ta có:
+\[
+\log_3 9 = 2
+\]
+
+Do đó:
+\[
+n^{\log_b a} = n^2
+\]
+
+\subsubsection{Bước 2: So sánh \(f(n)\) với \(n^{\log_b a}\)}
+
+\[
+f(n) = O(n^2)
+\]
+\[
+n^{\log_b a} = n^2
+\]
+
+Rõ ràng:
+\[
+f(n) = \Theta(n^2) = \Theta\left(n^{\log_b a}\right)
+\]
+
+\subsubsection{Bước 3: Xác định trường hợp của Master Theorem}
+
+Đây là \textbf{Trường hợp 2} của Master Theorem:
+\[
+f(n) = \Theta\left(n^{\log_b a} \cdot \log^k n\right) \quad \text{với } k = 0
+\]
+
+Theo định lý:
+\[
+T(n) = \Theta\left(n^{\log_b a} \cdot \log^{k+1} n\right) = \Theta\left(n^2 \cdot \log^{1} n\right)
+\]
+
+\subsubsection{Bước 4: Kết luận}
+
+\[
+\boxed{T(n) = \Theta\left(n^2 \log n\right)}
+\]
+
+\subsection{Kết quả cuối cùng}
+
+\[
+T(n) = \Theta(n^2 \log n)
+\]
+
+\subsection{Nhận xét và so sánh}
+
+\begin{itemize}
+    \item Thuật toán \(C\) có độ phức tạp \textbf{\(O(n^2 \log n)\)}, nhanh hơn so với giải pháp ngây thơ \(O(n^3)\) hoặc \(O(n^4)\).
+    \item So sánh với các thuật toán khác:
+    \begin{itemize}
+        \item Ví dụ 1: \(T(n) = 5T(n/2) + O(n) \Rightarrow \Theta(n^{\log_2 5}) \approx \Theta(n^{2.322})\) (đa thức, không có log)
+        \item Ví dụ 2: \(T(n) = 2T(n-1) + O(1) \Rightarrow O(2^n)\) (hàm mũ, rất tệ)
+        \item Ví dụ 3: \(T(n) = 9T(n/3) + O(n^2) \Rightarrow \Theta(n^2 \log n)\) (đa thức nhân log)
+    \end{itemize}
+    \item Lý do ra \(\Theta(n^2 \log n)\): vì thời gian kết hợp \(O(n^2)\) cân bằng chính xác với \(n^{\log_3 9} = n^2\), tạo ra thêm hệ số \(\log n\).
+\end{itemize}
+
+\subsection{Bảng tóm tắt ba ví dụ}
+
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Ví dụ} & \textbf{Hệ thức} & \textbf{Trường hợp MT} & \textbf{Độ phức tạp} \\
+\hline
+Ví dụ 1 & \(T(n) = 5T(n/2) + O(n)\) & TH1 & \(\Theta(n^{\log_2 5}) \approx \Theta(n^{2.322})\) \\
+\hline
+Ví dụ 2 & \(T(n) = 2T(n-1) + O(1)\) & Không áp dụng & \(O(2^n)\) \\
+\hline
+Ví dụ 3 & \(T(n) = 9T(n/3) + O(n^2)\) & TH2 & \(\Theta(n^2 \log n)\) \\
+\hline
+\end{tabular}
+
+\subsection{Bài tập tự luyện thêm}
+
+Hãy tự giải các trường hợp sau bằng Master Theorem:
+
+\begin{enumerate}
+    \item \(T(n) = 4T(n/2) + O(n^2)\)
+    \item \(T(n) = 8T(n/2) + O(n^3)\)
+    \item \(T(n) = 7T(n/2) + O(n^2)\)
+    \item \(T(n) = 2T(n/2) + O(n \log n)\)
+\end{enumerate}
+
+\textbf{Đáp án gợi ý:}
+\begin{enumerate}
+    \item \(\Theta(n^2 \log n)\)
+    \item \(\Theta(n^3 \log n)\)
+    \item \(\Theta(n^{\log_2 7}) \approx \Theta(n^{2.807})\)
+    \item \(\Theta(n \log^2 n)\)
+\end{enumerate}
+
+\section{Ví dụ 4}
+
+Cho đoạn mã giả sau:
+
+\begin{verbatim}
+public void function(int n) {
+    if (n > 1) {
+        System.out.println("*");
+        function(n/2);
+        function(n/2);
+    }
+}
+\end{verbatim}
+
+\textbf{Yêu cầu:} Viết hệ thức truy hồi và giải tìm độ phức tạp thuật toán.
+
+\subsection{Phân tích đoạn mã}
+
+\begin{itemize}
+    \item Hàm \texttt{function(n)} được gọi với tham số \(n\).
+    \item \textbf{Điều kiện dừng:} Khi \(n \le 1\), hàm không làm gì (trường hợp cơ sở).
+    \item \textbf{Khi \(n > 1\):}
+    \begin{enumerate}
+        \item In ra một dấu `*`: mất \(O(1)\) thời gian.
+        \item Gọi đệ quy \texttt{function(n/2)} \textbf{hai lần}.
+    \end{enumerate}
+\end{itemize}
+
+\subsection{Thiết lập hệ thức truy hồi}
+
+Gọi \(T(n)\) là số bước (hoặc thời gian) thực hiện khi gọi \texttt{function(n)}.
+
+Với \(n > 1\):
+\[
+T(n) = 2 \cdot T\left(\frac{n}{2}\right) + O(1)
+\]
+
+Với \(n \le 1\) (trường hợp cơ sở):
+\[
+T(1) = O(1)
+\]
+
+Viết gọn lại:
+\[
+\boxed{T(n) = 2T\left(\frac{n}{2}\right) + O(1)}
+\]
+
+\subsection{Giải hệ thức truy hồi}
+
+\subsubsection{Cách 1: Áp dụng Master Theorem}
+
+Hệ thức có dạng:
+\[
+T(n) = a \cdot T\left(\frac{n}{b}\right) + f(n)
+\]
+với:
+\[
+a = 2,\quad b = 2,\quad f(n) = O(1)
+\]
+
+Tính:
+\[
+\log_b a = \log_2 2 = 1
+\]
+\[
+n^{\log_b a} = n^1 = n
+\]
+
+So sánh \(f(n) = O(1)\) với \(n^{\log_b a} = n\):
+\[
+1 < n \quad \Rightarrow \quad f(n) = O\left(n^{\log_b a - \varepsilon}\right) \text{ với } \varepsilon = 1
+\]
+
+Đây là \textbf{Trường hợp 1} của Master Theorem:
+\[
+T(n) = \Theta\left(n^{\log_b a}\right) = \Theta(n)
+\]
+
+\subsubsection{Cách 2: Khai triển (để kiểm tra)}
+
+Giả sử \(n = 2^k\) và \(T(1) = c_0\), \(f(n) = c\) (hằng số).
+
+Khai triển:
+\[
+\begin{aligned}
+T(n) &= 2T\left(\frac{n}{2}\right) + c \\
+&= 2\left[2T\left(\frac{n}{4}\right) + c\right] + c = 4T\left(\frac{n}{4}\right) + 2c + c \\
+&= 4\left[2T\left(\frac{n}{8}\right) + c\right] + 3c = 8T\left(\frac{n}{8}\right) + 4c + 3c \\
+&= \cdots \\
+&= 2^k T(1) + (2^{k-1} + 2^{k-2} + \cdots + 2^0)c
+\end{aligned}
+\]
+
+Vì \(2^{k-1} + 2^{k-2} + \cdots + 2^0 = 2^k - 1\), ta có:
+\[
+T(n) = 2^k \cdot c_0 + (2^k - 1)c
+\]
+
+Mà \(n = 2^k \Rightarrow k = \log_2 n\), suy ra:
+\[
+T(n) = n \cdot c_0 + (n - 1)c = O(n)
+\]
+
+\subsection{Kết quả cuối cùng}
+
+\[
+\boxed{T(n) = \Theta(n)}
+\]
+
+\subsection{Giải thích ý nghĩa}
+
+\begin{itemize}
+    \item Mặc dù có hai lời gọi đệ quy, nhưng mỗi lần kích thước bài toán giảm một nửa, nên tổng số công việc chỉ là tuyến tính.
+    \item Cụ thể: số lần in `*` đúng bằng số nút trong cây đệ quy. Với cây nhị phân đầy đủ có chiều cao \(\log_2 n\), số nút là \(2^{\log_2 n + 1} - 1 \approx 2n - 1 = O(n)\).
+    \item Đây là một ví dụ điển hình: dù có hai nhánh đệ quy, nhưng vì độ sâu chỉ \(\log n\) nên tổng số lần gọi hàm là \(O(n)\), không phải \(O(2^{\log n}) = O(n)\).
+\end{itemize}
+
+\subsection{Bảng tóm tắt các ví dụ đã làm}
+
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Ví dụ} & \textbf{Hệ thức} & \textbf{Trường hợp MT} & \textbf{Độ phức tạp} \\
+\hline
+Ví dụ 1 & \(T(n) = 5T(n/2) + O(n)\) & TH1 & \(\Theta(n^{\log_2 5})\) \\
+\hline
+Ví dụ 2 & \(T(n) = 2T(n-1) + O(1)\) & Không áp dụng & \(O(2^n)\) \\
+\hline
+Ví dụ 3 & \(T(n) = 9T(n/3) + O(n^2)\) & TH2 & \(\Theta(n^2 \log n)\) \\
+\hline
+Ví dụ 4 & \(T(n) = 2T(n/2) + O(1)\) & TH1 & \(\Theta(n)\) \\
+\hline
+\end{tabular}
+
+\subsection{Bài tập tự luyện}
+
+Viết hệ thức truy hồi và giải cho các đoạn mã sau:
+
+\begin{enumerate}
+    \item
+    \begin{verbatim}
+    public void funcA(int n) {
+        if (n > 1) {
+            funcA(n/2);
+            funcA(n/2);
+            funcA(n/2);
+        }
+    }
+    \end{verbatim}
+    
+    \item
+    \begin{verbatim}
+    public void funcB(int n) {
+        if (n > 1) {
+            for (int i = 0; i < n; i++)
+                System.out.print(" ");
+            funcB(n/2);
+        }
+    }
+    \end{verbatim}
+    
+    \item
+    \begin{verbatim}
+    public void funcC(int n) {
+        if (n > 1) {
+            funcC(n-1);
+            funcC(n-1);
+        }
+    }
+    \end{verbatim}
+\end{enumerate}
+
+\textbf{Đáp án gợi ý:}
+\begin{enumerate}
+    \item \(T(n) = 3T(n/2) + O(1) \Rightarrow \Theta(n^{\log_2 3})\)
+    \item \(T(n) = T(n/2) + O(n) \Rightarrow \Theta(n)\) (áp dụng Master Theorem TH3 hoặc tổng hình học)
+    \item \(T(n) = 2T(n-1) + O(1) \Rightarrow O(2^n)\) (giống Ví dụ 2)
+\end{enumerate}
+
+\section{Ví dụ 5}
+
+Sử dụng Định lý Thợ (Master Theorem) để giải các hệ thức truy hồi sau:
+
+\begin{enumerate}
+    \item[(a)] \( T(n) = 3T\left(\dfrac{n}{2}\right) + n^2 \)
+    \item[(b)] \( T(n) = 4T\left(\dfrac{n}{2}\right) + n^2 \)
+    \item[(c)] \( T(n) = 16T\left(\dfrac{n}{4}\right) + n \)
+    \item[(d)] \( T(n) = 2T\left(\dfrac{n}{2}\right) + \dfrac{n}{\log n} \)
+    \item[(e)] \( T(n) = \sqrt{2}T\left(\dfrac{n}{2}\right) + \log n \)
+    \item[(f)] \( T(n) = 3T\left(\dfrac{n}{3}\right) + \sqrt{n} \)
+\end{enumerate}
+
+\subsection{Nhắc lại Định lý Thợ (Master Theorem)}
+
+Cho hệ thức:
+\[
+T(n) = a \cdot T\left(\frac{n}{b}\right) + f(n)
+\]
+với \(a \ge 1\), \(b > 1\). Đặt \(c = \log_b a\).
+
+\begin{enumerate}
+    \item \textbf{Trường hợp 1:} Nếu \(f(n) = O(n^{c - \varepsilon})\) với \(\varepsilon > 0\) thì \(T(n) = \Theta(n^c)\).
+    \item \textbf{Trường hợp 2:} Nếu \(f(n) = \Theta(n^c \log^k n)\) với \(k \ge 0\) thì \(T(n) = \Theta(n^c \log^{k+1} n)\).
+    \item \textbf{Trường hợp 3:} Nếu \(f(n) = \Omega(n^{c + \varepsilon})\) với \(\varepsilon > 0\) và \(a f\left(\frac{n}{b}\right) \le d f(n)\) với \(d < 1\) (điều kiện chính quy) thì \(T(n) = \Theta(f(n))\).
+\end{enumerate}
+
+\subsection{Lời giải chi tiết}
+
+\subsubsection{Câu (a): \( T(n) = 3T\left(\frac{n}{2}\right) + n^2 \)}
+
+\begin{itemize}
+    \item \(a = 3\), \(b = 2\), \(f(n) = n^2\)
+    \item \(\log_b a = \log_2 3 \approx 1.585\)
+    \item \(n^{\log_b a} = n^{\log_2 3} \approx n^{1.585}\)
+    \item So sánh \(f(n) = n^2\) với \(n^{\log_2 3}\):
+    \[
+    2 > \log_2 3 \quad \Rightarrow \quad f(n) = \Omega\left(n^{\log_2 3 + \varepsilon}\right) \text{ với } \varepsilon = 2 - \log_2 3 > 0
+    \]
+    \item Kiểm tra điều kiện chính quy:
+    \[
+    a f\left(\frac{n}{b}\right) = 3 \cdot \left(\frac{n}{2}\right)^2 = 3 \cdot \frac{n^2}{4} = \frac{3}{4} n^2
+    \]
+    \[
+    d = \frac{3}{4} < 1 \quad \text{(thỏa mãn)}
+    \]
+    \item Đây là \textbf{Trường hợp 3}: \(T(n) = \Theta(f(n)) = \Theta(n^2)\)
+\end{itemize}
+
+\[
+\boxed{T(n) = \Theta(n^2)}
+\]
+
+\subsubsection{Câu (b): \( T(n) = 4T\left(\frac{n}{2}\right) + n^2 \)}
+
+\begin{itemize}
+    \item \(a = 4\), \(b = 2\), \(f(n) = n^2\)
+    \item \(\log_b a = \log_2 4 = 2\)
+    \item \(n^{\log_b a} = n^2\)
+    \item So sánh \(f(n) = n^2\) với \(n^2\):
+    \[
+    f(n) = \Theta(n^2) = \Theta(n^{\log_b a})
+    \]
+    \item Đây là \textbf{Trường hợp 2} với \(k = 0\):
+    \[
+    T(n) = \Theta(n^{\log_b a} \log^{k+1} n) = \Theta(n^2 \log n)
+    \]
+\end{itemize}
+
+\[
+\boxed{T(n) = \Theta(n^2 \log n)}
+\]
+
+\subsubsection{Câu (c): \( T(n) = 16T\left(\frac{n}{4}\right) + n \)}
+
+\begin{itemize}
+    \item \(a = 16\), \(b = 4\), \(f(n) = n\)
+    \item \(\log_b a = \log_4 16 = 2\) (vì \(4^2 = 16\))
+    \item \(n^{\log_b a} = n^2\)
+    \item So sánh \(f(n) = n\) với \(n^2\):
+    \[
+    1 < 2 \quad \Rightarrow \quad f(n) = O\left(n^{2 - \varepsilon}\right) \text{ với } \varepsilon = 1
+    \]
+    \item Đây là \textbf{Trường hợp 1}: \(T(n) = \Theta(n^{\log_b a}) = \Theta(n^2)\)
+\end{itemize}
+
+\[
+\boxed{T(n) = \Theta(n^2)}
+\]
+
+\subsubsection{Câu (d): \( T(n) = 2T\left(\frac{n}{2}\right) + \frac{n}{\log n} \)}
+
+\begin{itemize}
+    \item \(a = 2\), \(b = 2\), \(f(n) = \dfrac{n}{\log n}\)
+    \item \(\log_b a = \log_2 2 = 1\)
+    \item \(n^{\log_b a} = n^1 = n\)
+    \item So sánh \(f(n) = \dfrac{n}{\log n}\) với \(n\):
+    \[
+    \frac{n}{\log n} = n \cdot (\log n)^{-1}
+    \]
+    \item Ta có: \(f(n) = \Theta(n \cdot \log^{-1} n)\). Đây là dạng \(\Theta(n^c \log^k n)\) với \(c = 1\) và \(k = -1\).
+    \item Tuy nhiên, Master Theorem chuẩn yêu cầu \(k \ge 0\). Với \(k < 0\), ta cần xét cẩn thận.
+    \item Thực tế, \(\dfrac{n}{\log n} = o(n)\) nên thuộc \textbf{Trường hợp 1}? Không hẳn, vì \(f(n)\) nhỏ hơn \(n\) nhưng không phải là \(O(n^{1-\varepsilon})\) với \(\varepsilon > 0\) cố định (do \(\log n\) tăng chậm).
+    \item Với dạng này, kết quả là \(T(n) = \Theta(n \log \log n)\) (có thể chứng minh bằng phương pháp đổi biến hoặc tổng).
+\end{itemize}
+
+\textbf{Kết luận:}
+\[
+\boxed{T(n) = \Theta(n \log \log n)}
+\]
+
+\subsubsection{Câu (e): \( T(n) = \sqrt{2}T\left(\frac{n}{2}\right) + \log n \)}
+
+\begin{itemize}
+    \item \(a = \sqrt{2}\), \(b = 2\), \(f(n) = \log n\)
+    \item \(\log_b a = \log_2 (\sqrt{2}) = \log_2 (2^{1/2}) = \dfrac{1}{2}\)
+    \item \(n^{\log_b a} = n^{1/2} = \sqrt{n}\)
+    \item So sánh \(f(n) = \log n\) với \(\sqrt{n}\):
+    \[
+    \log n = o(\sqrt{n}) \quad \Rightarrow \quad f(n) = O\left(n^{1/2 - \varepsilon}\right) \text{ với } \varepsilon = \frac{1}{2}
+    \]
+    \item Đây là \textbf{Trường hợp 1}: \(T(n) = \Theta(n^{\log_b a}) = \Theta(\sqrt{n})\)
+\end{itemize}
+
+\[
+\boxed{T(n) = \Theta(\sqrt{n})}
+\]
+
+\subsubsection{Câu (f): \( T(n) = 3T\left(\frac{n}{3}\right) + \sqrt{n} \)}
+
+\begin{itemize}
+    \item \(a = 3\), \(b = 3\), \(f(n) = \sqrt{n} = n^{1/2}\)
+    \item \(\log_b a = \log_3 3 = 1\)
+    \item \(n^{\log_b a} = n^1 = n\)
+    \item So sánh \(f(n) = n^{1/2}\) với \(n\):
+    \[
+    \frac{1}{2} < 1 \quad \Rightarrow \quad f(n) = O\left(n^{1 - \varepsilon}\right) \text{ với } \varepsilon = \frac{1}{2}
+    \]
+    \item Đây là \textbf{Trường hợp 1}: \(T(n) = \Theta(n^{\log_b a}) = \Theta(n)\)
+\end{itemize}
+
+\[
+\boxed{T(n) = \Theta(n)}
+\]
+
+\subsection{Bảng tổng kết kết quả}
+
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\textbf{Câu} & \textbf{Hệ thức} & \(\log_b a\) & \textbf{Trường hợp} & \textbf{Kết quả} \\
+\hline
+(a) & \(T(n) = 3T(n/2) + n^2\) & \(\approx 1.585\) & TH3 & \(\Theta(n^2)\) \\
+\hline
+(b) & \(T(n) = 4T(n/2) + n^2\) & \(2\) & TH2 & \(\Theta(n^2 \log n)\) \\
+\hline
+(c) & \(T(n) = 16T(n/4) + n\) & \(2\) & TH1 & \(\Theta(n^2)\) \\
+\hline
+(d) & \(T(n) = 2T(n/2) + n/\log n\) & \(1\) & Đặc biệt & \(\Theta(n \log \log n)\) \\
+\hline
+(e) & \(T(n) = \sqrt{2}T(n/2) + \log n\) & \(0.5\) & TH1 & \(\Theta(\sqrt{n})\) \\
+\hline
+(f) & \(T(n) = 3T(n/3) + \sqrt{n}\) & \(1\) & TH1 & \(\Theta(n)\) \\
+\hline
+\end{tabular}
+
+\subsection{Chú thích thêm cho câu (d)}
+
+Đối với câu (d): \(T(n) = 2T(n/2) + \frac{n}{\log n}\), ta có thể giải chi tiết như sau:
+
+Đặt \(n = 2^k\), \(T(2^k) = S(k)\). Khi đó:
+\[
+S(k) = 2S(k-1) + \frac{2^k}{k}
+\]
+
+Chia hai vế cho \(2^k\):
+\[
+\frac{S(k)}{2^k} = \frac{S(k-1)}{2^{k-1}} + \frac{1}{k}
+\]
+
+Đặt \(U(k) = \frac{S(k)}{2^k}\), ta có:
+\[
+U(k) = U(k-1) + \frac{1}{k}
+\]
+
+Suy ra:
+\[
+U(k) = U(0) + \sum_{i=1}^k \frac{1}{i} = \Theta(\log k)
+\]
+
+Do đó:
+\[
+S(k) = 2^k \cdot \Theta(\log k) \Rightarrow T(n) = n \cdot \Theta(\log \log n) = \Theta(n \log \log n)
+\]
+
+% ==================== BÀI TẬP ====================
+
+\section{Bài tập 1}
+
+Xác định độ phức tạp của các công thức sau:
+
+\begin{enumerate}
+    \item[(a)] \( T(n) = 2T(\sqrt{n}) + \log n \)
+    \item[(b)] \( T(n) = T(\sqrt{n}) + 1 \) \hfill (Gợi ý: Áp dụng ý a)
+\end{enumerate}
+
+\subsection{Phương pháp giải dạng \(T(n) = aT(n^{1/b}) + f(n)\)}
+
+Khi gặp dạng truy hồi với kích thước bài toán con là \(\sqrt{n}\) (hay \(n^{1/b}\)), ta sử dụng \textbf{phép đổi biến}:
+
+Đặt:
+\[
+n = 2^k \quad \text{(hoặc } n = m^k \text{)}
+\]
+Khi đó:
+\[
+\sqrt{n} = 2^{k/2}
+\]
+
+Sau đó đặt \(S(k) = T(2^k)\), ta chuyển về hệ thức truy hồi tuyến tính quen thuộc.
+
+\subsection{Câu (a): \( T(n) = 2T(\sqrt{n}) + \log n \)}
+
+\subsubsection{Bước 1: Đổi biến}
+
+Đặt \(n = 2^k\) (với \(k = \log_2 n\)), khi đó:
+\[
+\sqrt{n} = 2^{k/2}
+\]
+\[
+\log n = \log_2(2^k) = k
+\]
+
+Đặt \(S(k) = T(2^k) = T(n)\). Hệ thức trở thành:
+\[
+S(k) = 2 \cdot S\left(\frac{k}{2}\right) + k
+\]
+
+\subsubsection{Bước 2: Áp dụng Master Theorem cho \(S(k)\)}
+
+Hệ thức:
+\[
+S(k) = 2 \cdot S\left(\frac{k}{2}\right) + k
+\]
+
+Ở đây:
+\begin{itemize}
+    \item \(a = 2\), \(b = 2\)
+    \item \(f(k) = k\)
+    \item \(\log_b a = \log_2 2 = 1\)
+    \item \(k^{\log_b a} = k^1 = k\)
+\end{itemize}
+
+So sánh \(f(k) = k\) với \(k^{\log_b a} = k\):
+\[
+f(k) = \Theta(k) = \Theta(k^{\log_b a})
+\]
+
+Đây là \textbf{Trường hợp 2} của Master Theorem (với \(k = 0\) trong \(\log^k k\)):
+\[
+S(k) = \Theta(k^{\log_b a} \cdot \log^{k+1} k) = \Theta(k \cdot \log k)
+\]
+
+\subsubsection{Bước 3: Chuyển về biến \(n\)}
+
+Vì \(k = \log_2 n\), ta có:
+\[
+S(k) = \Theta(k \log k) = \Theta(\log n \cdot \log \log n)
+\]
+
+Vậy:
+\[
+\boxed{T(n) = \Theta(\log n \cdot \log \log n)}
+\]
+
+\subsection{Câu (b): \( T(n) = T(\sqrt{n}) + 1 \)}
+
+\subsubsection{Bước 1: Đổi biến}
+
+Đặt \(n = 2^k\), \(\sqrt{n} = 2^{k/2}\), \(S(k) = T(2^k)\). Hệ thức trở thành:
+\[
+S(k) = S\left(\frac{k}{2}\right) + 1
+\]
+
+\subsubsection{Bước 2: Giải hệ thức \(S(k) = S(k/2) + 1\)}
+
+Đây là dạng truy hồi chia đôi với hằng số. Giải bằng khai triển hoặc Master Theorem.
+
+\textbf{Cách 1: Khai triển lặp}
+\[
+\begin{aligned}
+S(k) &= S\left(\frac{k}{2}\right) + 1 \\
+&= \left[S\left(\frac{k}{4}\right) + 1\right] + 1 = S\left(\frac{k}{4}\right) + 2 \\
+&= S\left(\frac{k}{8}\right) + 3 \\
+&= \cdots \\
+&= S\left(\frac{k}{2^i}\right) + i
+\end{aligned}
+\]
+
+Dừng khi \(\frac{k}{2^i} = 1 \Rightarrow 2^i = k \Rightarrow i = \log_2 k\).
+
+Vậy:
+\[
+S(k) = S(1) + \log_2 k = \Theta(\log k)
+\]
+
+\textbf{Cách 2: Master Theorem}
+Với \(S(k) = 1 \cdot S(k/2) + 1\):
+\begin{itemize}
+    \item \(a = 1\), \(b = 2\), \(f(k) = 1\)
+    \item \(\log_b a = \log_2 1 = 0\)
+    \item \(k^{\log_b a} = k^0 = 1\)
+    \item So sánh: \(f(k) = \Theta(1) = \Theta(k^{\log_b a})\) ⇒ Trường hợp 2 với \(k = 0\)
+    \item \(S(k) = \Theta(k^{\log_b a} \cdot \log^{k+1} k) = \Theta(\log k)\)
+\end{itemize}
+
+\subsubsection{Bước 3: Chuyển về biến \(n\)}
+
+Vì \(k = \log_2 n\):
+\[
+S(k) = \Theta(\log k) = \Theta(\log \log n)
+\]
+
+Vậy:
+\[
+\boxed{T(n) = \Theta(\log \log n)}
+\]
+
+\subsection{Liên hệ giữa câu (a) và câu (b)}
+
+Có thể giải câu (b) bằng cách nhận xét: Câu (b) là trường hợp đặc biệt của câu (a) khi thay \(a = 1\) và \(f(n) = 1\)? Không hoàn toàn, nhưng có một cách khác:
+
+Nếu đặt \(U(n) = T(n) - T(\sqrt{n})\), không đơn giản. Thay vào đó, ta có thể thấy rằng câu (b) có dạng tương tự câu (a) với hệ số \(1\) thay vì \(2\) và số hạng \(+1\) thay vì \(\log n\).
+
+Tuy nhiên, kết quả câu (b) \(\Theta(\log \log n)\) nhỏ hơn nhiều so với câu (a) \(\Theta(\log n \cdot \log \log n)\), điều này hợp lý vì câu (a) có thêm hệ số nhân \(2\) làm tăng độ phức tạp.
+
+\subsection{Bảng tổng kết}
+
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Câu} & \textbf{Hệ thức} & \textbf{Sau đổi biến} & \textbf{Kết quả} \\
+\hline
+(a) & \(T(n) = 2T(\sqrt{n}) + \log n\) & \(S(k) = 2S(k/2) + k\) & \(\Theta(\log n \cdot \log \log n)\) \\
+\hline
+(b) & \(T(n) = T(\sqrt{n}) + 1\) & \(S(k) = S(k/2) + 1\) & \(\Theta(\log \log n)\) \\
+\hline
+\end{tabular}
+
+\subsection{Bài tập tương tự}
+
+Hãy giải các hệ thức sau:
+
+\begin{enumerate}
+    \item \(T(n) = 4T(\sqrt{n}) + n\)
+    \item \(T(n) = 3T(\sqrt{n}) + \log^2 n\)
+    \item \(T(n) = T(\sqrt{n}) + \log \log n\)
+\end{enumerate}
+
+\textbf{Đáp án gợi ý:}
+\begin{enumerate}
+    \item Đặt \(n = 2^k\), được \(S(k) = 4S(k/2) + 2^k\). Áp dụng Master Theorem: \(\log_2 4 = 2\), \(f(k) = 2^k\) lớn hơn \(k^2\), thuộc TH3? Thực tế cần so sánh \(2^k\) với \(k^2\): \(2^k\) lớn hơn, nhưng cần kiểm tra điều kiện chính quy. Kết quả: \(\Theta(n)\).
+    \item Tương tự câu (a): \(S(k) = 3S(k/2) + k^2\) ⇒ \(S(k) = \Theta(k^{\log_2 3}) = \Theta(k^{1.585})\) ⇒ \(T(n) = \Theta((\log n)^{1.585})\).
+    \item \(S(k) = S(k/2) + \log k\) ⇒ \(S(k) = \Theta(\log^2 k)\) ⇒ \(T(n) = \Theta((\log \log n)^2)\).
+\end{enumerate}
+
+\section{Bài tập 2}
+
+\subsection{Bài toán 1: Tìm phần tử lớn nhất và nhỏ nhất trong mảng}
+
+Cho một mảng số nguyên, hãy tìm cả phần tử lớn nhất và nhỏ nhất bằng phương pháp chia để trị.
+
+\subsubsection{Thuật toán}
+
+\begin{algorithmic}[1]
+\Function{FindMinMax}{$A, l, r$}
+    \If{$l = r$}
+        \State \Return $(A[l], A[l])$
+    \ElsIf{$l + 1 = r$}
+        \If{$A[l] < A[r]$}
+            \State \Return $(A[l], A[r])$
+        \Else
+            \State \Return $(A[r], A[l])$
+        \EndIf
+    \Else
+        \State $mid \gets \lfloor (l+r)/2 \rfloor$
+        \State $(min1, max1) \gets$ \Call{FindMinMax}{$A, l, mid$}
+        \State $(min2, max2) \gets$ \Call{FindMinMax}{$A, mid+1, r$}
+        \State $min\_all \gets \min(min1, min2)$
+        \State $max\_all \gets \max(max1, max2)$
+        \State \Return $(min\_all, max\_all)$
+    \EndIf
+\EndFunction
+\end{algorithmic}
+
+\subsubsection{Độ phức tạp}
+\[
+T(n) = 2T\left(\frac{n}{2}\right) + 2 = \Theta(n)
+\]
+Số phép so sánh: \(\frac{3n}{2} - 2\) (tốt hơn so với duyệt tuần tự \(2n-2\)).
+
+\subsubsection{Mã Java (dàn ý nhanh)}
+\begin{verbatim}
+public class MinMax {
+    static class Pair { int min, max; }
+    static Pair findMinMax(int[] arr, int l, int r) {
+        if (l == r) return new Pair(arr[l], arr[l]);
+        if (l + 1 == r) {
+            if (arr[l] < arr[r]) return new Pair(arr[l], arr[r]);
+            else return new Pair(arr[r], arr[l]);
+        }
+        int mid = (l + r) / 2;
+        Pair left = findMinMax(arr, l, mid);
+        Pair right = findMinMax(arr, mid + 1, r);
+        return new Pair(Math.min(left.min, right.min), 
+                        Math.max(left.max, right.max));
+    }
+}
+\end{verbatim}
+
+\subsection{Bài toán 2: Nhân ma trận (Chia để trị chuẩn và Strassen)}
+
+Cho hai ma trận vuông \(A\) và \(B\) cấp \(n\) (với \(n\) là lũy thừa của 2), tính \(C = A \times B\).
+
+\subsubsection{2.1 Chia để trị chuẩn}
+
+Phân hoạch mỗi ma trận thành \(4\) ma trận con kích thước \(n/2\):
+\[
+A = \begin{bmatrix} A_{11} & A_{12} \\ A_{21} & A_{22} \end{bmatrix},\quad
+B = \begin{bmatrix} B_{11} & B_{12} \\ B_{21} & B_{22} \end{bmatrix},\quad
+C = \begin{bmatrix} C_{11} & C_{12} \\ C_{21} & C_{22} \end{bmatrix}
+\]
+
+Tính:
+\[
+\begin{aligned}
+C_{11} &= A_{11}B_{11} + A_{12}B_{21} \\
+C_{12} &= A_{11}B_{12} + A_{12}B_{22} \\
+C_{21} &= A_{21}B_{11} + A_{22}B_{21} \\
+C_{22} &= A_{21}B_{12} + A_{22}B_{22}
+\end{aligned}
+\]
+
+\subsubsection{Độ phức tạp}
+\[
+T(n) = 8T\left(\frac{n}{2}\right) + O(n^2) \quad\Rightarrow\quad T(n) = O(n^3)
+\]
+
+\subsubsection{2.2 Thuật toán Strassen}
+
+Strassen chỉ dùng \(7\) phép nhân thay vì \(8\):
+
+Tính:
+\[
+\begin{aligned}
+M_1 &= (A_{11}+A_{22})(B_{11}+B_{22}) \\
+M_2 &= (A_{21}+A_{22})B_{11} \\
+M_3 &= A_{11}(B_{12}-B_{22}) \\
+M_4 &= A_{22}(B_{21}-B_{11}) \\
+M_5 &= (A_{11}+A_{12})B_{22} \\
+M_6 &= (A_{21}-A_{11})(B_{11}+B_{12}) \\
+M_7 &= (A_{12}-A_{22})(B_{21}+B_{22})
+\end{aligned}
+\]
+
+Sau đó:
+\[
+\begin{aligned}
+C_{11} &= M_1 + M_4 - M_5 + M_7 \\
+C_{12} &= M_3 + M_5 \\
+C_{21} &= M_2 + M_4 \\
+C_{22} &= M_1 - M_2 + M_3 + M_6
+\end{aligned}
+\]
+
+\subsubsection{Độ phức tạp của Strassen}
+\[
+T(n) = 7T\left(\frac{n}{2}\right) + O(n^2) \quad\Rightarrow\quad T(n) = O(n^{\log_2 7}) \approx O(n^{2.81})
+\]
+
+\subsection{Bài toán 3: Sắp xếp nhanh (QuickSort)}
+
+Sắp xếp một mảng theo thứ tự tăng dần hoặc giảm dần bằng QuickSort.
+
+\subsubsection{Thuật toán (tăng dần)}
+
+\begin{algorithmic}[1]
+\Function{QuickSort}{$A, low, high$}
+    \If{$low < high$}
+        \State $pivot\_index \gets$ \Call{Partition}{$A, low, high$}
+        \State \Call{QuickSort}{$A, low, pivot\_index - 1$}
+        \State \Call{QuickSort}{$A, pivot\_index + 1, high$}
+    \EndIf
+\EndFunction
+\end{algorithmic}
+
+\subsubsection{Phân hoạch (Lomuto)}
+
+\begin{algorithmic}[1]
+\Function{Partition}{$A, low, high$}
+    \State $pivot \gets A[high]$
+    \State $i \gets low - 1$
+    \For{$j = low$ \textbf{to} $high - 1$}
+        \If{$A[j] \le pivot$}
+            \State $i \gets i + 1$
+            \State swap $A[i]$ and $A[j]$
+        \EndIf
+    \EndFor
+    \State swap $A[i+1]$ and $A[high]$
+    \State \Return $i+1$
+\EndFunction
+\end{algorithmic}
+
+\subsubsection{Độ phức tạp}
+\begin{itemize}
+    \item Tốt nhất / Trung bình: \(O(n \log n)\)
+    \item Tệ nhất: \(O(n^2)\) (khi mảng đã được sắp xếp)
+\end{itemize}
+
+\subsubsection{Đối với thứ tự giảm dần}
+Thay đổi điều kiện thành \(A[j] \ge pivot\).
+
+\subsection{Bài toán 4: Sắp xếp trộn (MergeSort)}
+
+Sắp xếp một mảng theo thứ tự tăng dần hoặc giảm dần bằng MergeSort.
+
+\subsubsection{Thuật toán (tăng dần)}
+
+\begin{algorithmic}[1]
+\Function{MergeSort}{$A, l, r$}
+    \If{$l < r$}
+        \State $mid \gets \lfloor (l+r)/2 \rfloor$
+        \State \Call{MergeSort}{$A, l, mid$}
+        \State \Call{MergeSort}{$A, mid+1, r$}
+        \State \Call{Merge}{$A, l, mid, r$}
+    \EndIf
+\EndFunction
+\end{algorithmic}
+
+\subsubsection{Hàm trộn (Merge)}
+
+\begin{algorithmic}[1]
+\Function{Merge}{$A, l, mid, r$}
+    \State $n1 \gets mid - l + 1$
+    \State $n2 \gets r - mid$
+    \State tạo mảng $L[0..n1-1]$, $R[0..n2-1]$
+    \For{$i = 0$ \textbf{to} $n1-1$}
+        \State $L[i] \gets A[l+i]$
+    \EndFor
+    \For{$j = 0$ \textbf{to} $n2-1$}
+        \State $R[j] \gets A[mid+1+j]$
+    \EndFor
+    \State $i \gets 0, j \gets 0, k \gets l$
+    \While{$i < n1$ \textbf{and} $j < n2$}
+        \If{$L[i] \le R[j]$}
+            \State $A[k] \gets L[i]$; $i \gets i+1$
+        \Else
+            \State $A[k] \gets R[j]$; $j \gets j+1$
+        \EndIf
+        \State $k \gets k+1$
+    \EndWhile
+    \State sao chép phần còn lại của $L$ hoặc $R$
+\EndFunction
+\end{algorithmic}
+
+\subsubsection{Độ phức tạp}
+\[
+T(n) = 2T\left(\frac{n}{2}\right) + O(n) \quad\Rightarrow\quad T(n) = O(n \log n)
+\]
+Luôn là \(O(n \log n)\) bất kể thứ tự đầu vào.
+
+\subsubsection{Đối với thứ tự giảm dần}
+Thay đổi điều kiện thành \(L[i] \ge R[j]\).
+
+\subsection{Bài toán 5: Kiểm tra phần tử xuất hiện đa số trong mảng đã sắp xếp}
+
+Cho một mảng \textbf{đã được sắp xếp}, hãy tìm xem có tồn tại phần tử nào xuất hiện nhiều hơn \(n/2\) lần hay không.
+
+\subsubsection{Nhận xét}
+Trong mảng đã sắp xếp, nếu phần tử đa số tồn tại thì nó phải là phần tử ở giữa (tại chỉ số \(n/2\)).
+
+\subsubsection{Thuật toán}
+
+\begin{algorithmic}[1]
+\Function{HasMajority}{$A, n$}
+    \State $candidate \gets A[n/2]$
+    \State $count \gets 0$
+    \For{$i = 0$ \textbf{to} $n-1$}
+        \If{$A[i] = candidate$}
+            \State $count \gets count + 1$
+        \EndIf
+    \EndFor
+    \If{$count > n/2$}
+        \State \Return \textbf{true}
+    \Else
+        \State \Return \textbf{false}
+    \EndIf
+\EndFunction
+\end{algorithmic}
+
+\subsubsection{Cách tiếp cận chia để trị (cho mảng chưa sắp xếp)}
+
+\begin{algorithmic}[1]
+\Function{FindMajority}{$A, l, r$}
+    \If{$l = r$}
+        \State \Return $A[l]$
+    \EndIf
+    \State $mid \gets \lfloor (l+r)/2 \rfloor$
+    \State $left \gets$ \Call{FindMajority}{$A, l, mid$}
+    \State $right \gets$ \Call{FindMajority}{$A, mid+1, r$}
+    \If{$left = right$}
+        \State \Return $left$
+    \EndIf
+    \State $left\_count \gets$ \Call{Count}{$A, l, r, left$}
+    \State $right\_count \gets$ \Call{Count}{$A, l, r, right$}
+    \If{$left\_count > (r-l+1)/2$}
+        \State \Return $left$
+    \ElsIf{$right\_count > (r-l+1)/2$}
+        \State \Return $right$
+    \Else
+        \State \Return \textbf{null}
+    \EndIf
+\EndFunction
+\end{algorithmic}
+
+\subsubsection{Độ phức tạp}
+\begin{itemize}
+    \item Mảng đã sắp xếp: \(O(n)\)
+    \item Chia để trị cho mảng chưa sắp xếp: \(O(n \log n)\)
+\end{itemize}
+
+\subsection{Bài toán 6: Trung vị của hai mảng đã sắp xếp có kích thước khác nhau}
+
+Cho hai mảng đã sắp xếp \(A\) (kích thước \(m\)) và \(B\) (kích thước \(n\)), tìm trung vị của mảng hợp đã được sắp xếp mà không cần trộn toàn bộ chúng.
+
+\subsubsection{Định nghĩa}
+Nếu tổng độ dài \(m+n\) lẻ, trung vị là phần tử ở giữa. Nếu chẵn, trung vị là trung bình của hai phần tử giữa.
+
+\subsubsection{Thuật toán chia để trị}
+
+\begin{algorithmic}[1]
+\Function{FindMedian}{$A, B$}
+    \If{$|A| > |B|$}
+        \State swap $A$ and $B$
+    \EndIf
+    \State $x \gets |A|$, $y \gets |B|$
+    \State $low \gets 0$, $high \gets x$
+    \While{$low \le high$}
+        \State $partitionX \gets (low + high)/2$
+        \State $partitionY \gets (x + y + 1)/2 - partitionX$
+        
+        \State $maxLeftX \gets (partitionX = 0) ? -\infty : A[partitionX-1]$
+        \State $minRightX \gets (partitionX = x) ? \infty : A[partitionX]$
+        \State $maxLeftY \gets (partitionY = 0) ? -\infty : B[partitionY-1]$
+        \State $minRightY \gets (partitionY = y) ? \infty : B[partitionY]$
+        
+        \If{$maxLeftX \le minRightY$ \textbf{and} $maxLeftY \le minRightX$}
+            \If{$(x+y)$ lẻ}
+                \State \Return $\max(maxLeftX, maxLeftY)$
+            \Else
+                \State \Return $\frac{\max(maxLeftX, maxLeftY) + \min(minRightX, minRightY)}{2}$
+            \EndIf
+        \ElsIf{$maxLeftX > minRightY$}
+            \State $high \gets partitionX - 1$
+        \Else
+            \State $low \gets partitionX + 1$
+        \EndIf
+    \EndWhile
+\EndFunction
+\end{algorithmic}
+
+\subsubsection{Độ phức tạp}
+\[
+O(\log(\min(m, n)))
+\]
+
+\subsubsection{Ví dụ}
+\(A = [1, 3, 8]\), \(B = [7, 9, 10, 12]\). Mảng hợp = \([1,3,7,8,9,10,12]\), trung vị = \(8\).
+
+\subsection{Bảng tổng kết}
+
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Bài toán} & \textbf{Độ phức tạp thời gian} \\
+\hline
+1. Min \& Max & \(O(n)\) \\
+2. Nhân ma trận chuẩn & \(O(n^3)\) \\
+2. Strassen & \(O(n^{2.81})\) \\
+3. QuickSort & Trung bình \(O(n\log n)\), tệ \(O(n^2)\) \\
+4. MergeSort & \(O(n\log n)\) \\
+5. Phần tử đa số (đã sắp xếp) & \(O(n)\) \\
+5. Phần tử đa số (chia để trị) & \(O(n\log n)\) \\
+6. Trung vị hai mảng đã sắp xếp & \(O(\log(\min(m,n)))\) \\
+\hline
+\end{tabular}
+
+\section{Bài tập 3}
+
+\subsection{Bài toán 1: Cặp điểm gần nhất (phiên bản 1D)}
+
+\subsubsection{1a. Phát biểu bài toán}
+
+Cho một tập gồm \(n\) số thực \(x_1, x_2, \dots, x_n\), tìm hai số có hiệu nhỏ nhất.
+
+\subsubsection{1b. Thiết kế thuật toán (Chia để trị)}
+
+\textbf{Ý tưởng:}
+\begin{enumerate}
+    \item Sắp xếp mảng (nếu chưa được sắp xếp) – \(O(n \log n)\).
+    \item Chia mảng đã sắp xếp thành hai nửa.
+    \item Đệ quy tìm cặp gần nhất trong nửa trái và nửa phải.
+    \item Cặp gần nhất có thể nằm giữa hai nửa: kiểm tra cặp \((mid, mid+1)\).
+\end{enumerate}
+
+\textbf{Thuật toán:}
+
+\begin{algorithmic}[1]
+\Function{ClosestPair1D}{$A, l, r$}
+    \If{$l \ge r$}
+        \State \Return $\infty$
+    \ElsIf{$l + 1 = r$}
+        \State \Return $A[r] - A[l]$
+    \Else
+        \State $mid \gets \lfloor (l + r)/2 \rfloor$
+        \State $d\_left \gets$ \Call{ClosestPair1D}{$A, l, mid$}
+        \State $d\_right \gets$ \Call{ClosestPair1D}{$A, mid+1, r$}
+        \State $d \gets \min(d\_left, d\_right)$
+        \State $d\_cross \gets A[mid+1] - A[mid]$ \Comment{băng qua giữa}
+        \State \Return $\min(d, d\_cross)$
+    \EndIf
+\EndFunction
+\end{algorithmic}
+
+\subsubsection{1c. Phân tích độ phức tạp}
+
+Không có sắp xếp: đệ quy trên mảng chưa sắp xếp không hiệu quả.  
+Với sắp xếp trước:
+
+\[
+T_{\text{sort}}(n) = O(n \log n)
+\]
+Sau đó đệ quy:
+\[
+T(n) = 2T\left(\frac{n}{2}\right) + O(1) \quad\Rightarrow\quad T(n) = O(n)
+\]
+
+Tổng cộng: \(O(n \log n) + O(n) = O(n \log n)\).
+
+\subsubsection{1d. Đây có phải thuật toán tốt không?}
+
+\textbf{Trả lời:} Không, nó không tốt cho bài toán này.
+
+\textbf{Lý do:}
+\begin{itemize}
+    \item Bài toán cặp điểm gần nhất 1D có thể giải bằng cách sắp xếp rồi duyệt tuyến tính: \(O(n \log n)\).
+    \item Thậm chí tốt hơn: sau khi sắp xếp, chỉ cần duyệt một lần: tổng \(O(n \log n)\).
+    \item Chia để trị thêm độ phức tạp không cần thiết.
+    \item Một thuật toán đơn giản: sắp xếp + duyệt tuyến tính vừa đơn giản vừa hiệu quả.
+\end{itemize}
+
+\textbf{Thuật toán tốt hơn:}
+\begin{verbatim}
+1. Sắp xếp mảng: O(n log n)
+2. min_dist = vô cùng
+3. for i = 0 to n-2:
+       min_dist = min(min_dist, A[i+1] - A[i])
+4. return min_dist
+\end{verbatim}
+
+Vậy đối với 1D, chia để trị là không cần thiết.
+
+\subsection{Bài toán 2: Bài toán đồng xu giả}
+
+\subsubsection{2a. Phát biểu bài toán}
+
+Có \(n\) đồng xu, tất cả đều giống nhau về hình thức. Chính xác một đồng là giả (fake) và nhẹ hơn đồng thật. Bạn có một cân đĩa (không phải cân bàn). Hãy tìm đồng xu giả với số lần cân ít nhất.
+
+\subsubsection{2b. Thiết kế thuật toán (Giảm để trị)}
+
+Đây là bài toán \textbf{giảm theo hằng số nhân} (tìm kiếm tam phân).
+
+\textbf{Ý tưởng:}
+\begin{itemize}
+    \item Chia các đồng xu thành 3 nhóm càng đều càng tốt.
+    \item Cân hai nhóm với nhau.
+    \item Nếu cân bằng, đồng giả nằm trong nhóm thứ ba.
+    \item Nếu không cân bằng, bên nhẹ hơn chứa đồng giả.
+    \item Lặp lại trên nhóm nhỏ hơn.
+\end{itemize}
+
+\textbf{Thuật toán:}
+
+\begin{algorithmic}[1]
+\Function{FindFakeCoin}{$coins[], l, r$}
+    \State $n \gets r - l + 1$
+    \If{$n = 1$}
+        \State \Return $l$
+    \ElsIf{$n = 2$}
+        \State Cân $coins[l]$ vs $coins[l+1]$
+        \State \Return chỉ số của đồng nhẹ hơn
+    \Else
+        \State $groupSize \gets \lfloor n/3 \rfloor$
+        \State $g1 \gets [l, l+groupSize-1]$
+        \State $g2 \gets [l+groupSize, l+2*groupSize-1]$
+        \State $g3 \gets [l+2*groupSize, r]$
+        \State Cân $g1$ vs $g2$
+        \If{$g1$ và $g2$ cân bằng}
+            \State \Return \Call{FindFakeCoin}{$coins, start(g3), end(g3)$}
+        \ElsIf{$g1$ nhẹ hơn}
+            \State \Return \Call{FindFakeCoin}{$coins, start(g1), end(g1)$}
+        \Else
+            \State \Return \Call{FindFakeCoin}{$coins, start(g2), end(g2)$}
+        \EndIf
+    \EndIf
+\EndFunction
+\end{algorithmic}
+
+\subsubsection{2c. Phân tích độ phức tạp}
+
+Mỗi bước, kích thước bài toán giảm xuống nhiều nhất \(\lceil n/3 \rceil\):
+\[
+T(n) = T\left(\frac{n}{3}\right) + O(1)
+\]
+
+Giải:
+\[
+T(n) = O(\log_3 n)
+\]
+
+Số lần cân: \(\lceil \log_3 n \rceil\).
+
+\subsubsection{2d. So sánh với cách tiếp cận nhị phân}
+
+Nếu chia thành 2 nhóm (giảm một nửa):
+\[
+T(n) = T\left(\frac{n}{2}\right) + O(1) = O(\log_2 n)
+\]
+
+Tam phân tốt hơn: \(\log_3 n < \log_2 n\).
+
+\subsubsection{Ví dụ}
+
+Với \(n = 27\) đồng xu:
+\begin{itemize}
+    \item Phương pháp nhị phân: \(\lceil \log_2 27 \rceil = 5\) lần cân.
+    \item Phương pháp tam phân: \(\lceil \log_3 27 \rceil = 3\) lần cân.
+\end{itemize}
+
+\subsubsection{2e. Cài đặt minh họa (Python)}
+
+\begin{verbatim}
+def find_fake_coin(coins, left, right):
+    n = right - left + 1
+    if n == 1:
+        return left
+    if n == 2:
+        return left if coins[left] < coins[right] else right
+    
+    group_size = n // 3
+    # cân nhóm1 vs nhóm2
+    sum1 = sum(coins[left:left+group_size])
+    sum2 = sum(coins[left+group_size:left+2*group_size])
+    
+    if sum1 == sum2:
+        return find_fake_coin(coins, left+2*group_size, right)
+    elif sum1 < sum2:
+        return find_fake_coin(coins, left, left+group_size-1)
+    else:
+        return find_fake_coin(coins, left+group_size, left+2*group_size-1)
+\end{verbatim}
+
+\subsection{Bảng tổng kết}
+
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Bài toán} & \textbf{Mô hình} & \textbf{Hệ thức} & \textbf{Độ phức tạp} \\
+\hline
+Cặp điểm gần nhất 1D (D\&C) & Chia để trị & \(T(n) = 2T(n/2) + O(1)\) & \(O(n \log n)\) \\
+Cặp điểm gần nhất 1D (tốt hơn) & Sắp xếp + duyệt & — & \(O(n \log n)\) \\
+Đồng xu giả (tam phân) & Giảm theo hệ số & \(T(n) = T(n/3) + O(1)\) & \(O(\log_3 n)\) \\
+Đồng xu giả (nhị phân) & Giảm theo hệ số & \(T(n) = T(n/2) + O(1)\) & \(O(\log_2 n)\) \\
+\hline
+\end{tabular}
+
+\subsection{Kết luận}
+
+\begin{itemize}
+    \item Đối với cặp điểm gần nhất 1D, chia để trị hoạt động nhưng không cần thiết; sắp xếp + duyệt tuyến tính đơn giản hơn và hiệu quả tương đương.
+    \item Đối với bài toán đồng xu giả, chiến lược giảm theo hệ số tam phân là tối ưu, đạt \(\lceil \log_3 n \rceil\) lần cân.
+    \item Cả hai bài toán minh họa cách lựa chọn mô hình (chia để trị hay giảm để trị) ảnh hưởng đến thiết kế và hiệu quả của thuật toán.
+\end{itemize}
+
+\section{Bài tập 4}
+
+\subsection{Phát biểu bài toán}
+
+Cho một mảng \(P[0..n-1]\) biểu diễn giá cổ phiếu trên \(n\) ngày liên tiếp, trong đó:
+\begin{itemize}
+    \item \(P[i]\) là giá vào ngày \(i\).
+    \item Các giá không hoàn toàn giống nhau.
+    \item Bạn có thể mua nhiều nhất một lần và bán nhiều nhất một lần.
+    \item Bạn phải mua trước khi bán.
+\end{itemize}
+
+Tìm các chỉ số \(i\) (ngày mua) và \(j\) (ngày bán) với \(i < j\) để tối đa hóa:
+\[
+\text{Lợi nhuận} = P[j] - P[i]
+\]
+
+\subsection{Cách tiếp cận chia để trị}
+
+\subsubsection{Ý tưởng}
+Lợi nhuận lớn nhất có thể xảy ra theo một trong ba cách:
+\begin{enumerate}
+    \item Mua và bán hoàn toàn trong \textbf{nửa trái} của mảng.
+    \item Mua và bán hoàn toàn trong \textbf{nửa phải} của mảng.
+    \item Mua ở \textbf{nửa trái} và bán ở \textbf{nửa phải}.
+\end{enumerate}
+
+\subsubsection{Thuật toán}
+
+\begin{algorithmic}[1]
+\Function{MaxProfitDAC}{$P, l, r$}
+    \If{$l = r$}
+        \State \Return $(0, l, l)$ \Comment{không thể có lợi nhuận}
+    \EndIf
+    \State $mid \gets \lfloor (l + r)/2 \rfloor$
+    
+    \State $(profit\_left, buy\_left, sell\_left) \gets$ \Call{MaxProfitDAC}{$P, l, mid$}
+    \State $(profit\_right, buy\_right, sell\_right) \gets$ \Call{MaxProfitDAC}{$P, mid+1, r$}
+    
+    \State $(profit\_cross, buy\_cross, sell\_cross) \gets$ \Call{MaxCrossingProfit}{$P, l, mid, r$}
+    
+    \State \Return bộ có lợi nhuận lớn nhất trong ba bộ
+\EndFunction
+\end{algorithmic}
+
+\subsubsection{Lợi nhuận băng qua}
+
+Để tìm lợi nhuận lớn nhất khi mua ở nửa trái và bán ở nửa phải:
+\begin{itemize}
+    \item Tìm giá nhỏ nhất trong nửa trái (ngày tốt nhất để mua).
+    \item Tìm giá lớn nhất trong nửa phải (ngày tốt nhất để bán).
+\end{itemize}
+
+\begin{algorithmic}[1]
+\Function{MaxCrossingProfit}{$P, l, mid, r$}
+    \State $min\_price \gets P[mid]$
+    \State $buy\_index \gets mid$
+    \For{$i = mid$ \textbf{downto} $l$}
+        \If{$P[i] < min\_price$}
+            \State $min\_price \gets P[i]$
+            \State $buy\_index \gets i$
+        \EndIf
+    \EndFor
+    
+    \State $max\_price \gets P[mid+1]$
+    \State $sell\_index \gets mid+1$
+    \For{$j = mid+1$ \textbf{to} $r$}
+        \If{$P[j] > max\_price$}
+            \State $max\_price \gets P[j]$
+            \State $sell\_index \gets j$
+        \EndIf
+    \EndFor
+    
+    \State \Return $(max\_price - min\_price, buy\_index, sell\_index)$
+\EndFunction
+\end{algorithmic}
+
+\subsection{Phân tích độ phức tạp}
+
+Hệ thức:
+\[
+T(n) = 2T\left(\frac{n}{2}\right) + O(n)
+\]
+
+Với \(O(n)\) là chi phí tính lợi nhuận băng qua (duyệt nửa trái và nửa phải).
+
+Theo Định lý Thợ (Trường hợp 2):
+\[
+T(n) = \Theta(n \log n)
+\]
+
+\subsection{So sánh với các cách tiếp cận khác}
+
+\subsubsection{Vét cạn}
+Thử tất cả các cặp \((i, j)\):
+\[
+T(n) = \binom{n}{2} = O(n^2)
+\]
+
+\subsubsection{Thuật toán Kadane (Quy hoạch động - Tối ưu)}
+Ý tưởng: giữ giá nhỏ nhất cho đến hiện tại:
+\begin{verbatim}
+min_price = vô cùng
+max_profit = 0
+for each price in prices:
+    min_price = min(min_price, price)
+    max_profit = max(max_profit, price - min_price)
+\end{verbatim}
+Độ phức tạp: \(O(n)\) thời gian, \(O(1)\) không gian.
+
+\subsubsection{Bảng so sánh}
+
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Phương pháp} & \textbf{Thời gian} & \textbf{Không gian} \\
+\hline
+Vét cạn & \(O(n^2)\) & \(O(1)\) \\
+Chia để trị & \(O(n \log n)\) & \(O(\log n)\) (ngăn xếp đệ quy) \\
+Kadane & \(O(n)\) & \(O(1)\) \\
+\hline
+\end{tabular}
+
+\subsection{Chia để trị có phải là lựa chọn tốt không?}
+
+\begin{itemize}
+    \item \textbf{Có cho việc học:} Nó minh họa rõ ràng mô hình chia để trị.
+    \item \textbf{Không cho thực hành:} Thuật toán Kadane đơn giản hơn và nhanh hơn (\(O(n)\) so với \(O(n \log n)\)).
+    \item Bước tính lợi nhuận băng qua thực chất là duyệt, khá đơn giản.
+    \item Tuy nhiên, D\&C vẫn đủ hiệu quả cho \(n\) lớn (ví dụ \(n = 10^6\) vẫn ổn).
+\end{itemize}
+
+\subsection{Cài đặt đầy đủ (Python)}
+
+\begin{verbatim}
+def max_profit_dac(prices, left, right):
+    if left == right:
+        return (0, left, left)
+    
+    mid = (left + right) // 2
+    
+    # Nửa trái
+    profit_left, buy_left, sell_left = max_profit_dac(prices, left, mid)
+    
+    # Nửa phải
+    profit_right, buy_right, sell_right = max_profit_dac(prices, mid + 1, right)
+    
+    # Băng qua
+    # Tìm min trong nửa trái
+    min_price = prices[mid]
+    buy_cross = mid
+    for i in range(mid, left - 1, -1):
+        if prices[i] < min_price:
+            min_price = prices[i]
+            buy_cross = i
+    
+    # Tìm max trong nửa phải
+    max_price = prices[mid + 1]
+    sell_cross = mid + 1
+    for j in range(mid + 1, right + 1):
+        if prices[j] > max_price:
+            max_price = prices[j]
+            sell_cross = j
+    
+    profit_cross = max_price - min_price
+    
+    # Trả về tốt nhất
+    if profit_left >= profit_right and profit_left >= profit_cross:
+        return (profit_left, buy_left, sell_left)
+    elif profit_right >= profit_left and profit_right >= profit_cross:
+        return (profit_right, buy_right, sell_right)
+    else:
+        return (profit_cross, buy_cross, sell_cross)
+
+# Phiên bản Kadane tối ưu
+def max_profit_kadane(prices):
+    if not prices:
+        return (0, -1, -1)
+    min_price = prices[0]
+    min_index = 0
+    max_profit = 0
+    buy_day = 0
+    sell_day = 0
+    
+    for i in range(1, len(prices)):
+        if prices[i] < min_price:
+            min_price = prices[i]
+            min_index = i
+        profit = prices[i] - min_price
+        if profit > max_profit:
+            max_profit = profit
+            buy_day = min_index
+            sell_day = i
+    return (max_profit, buy_day, sell_day)
+
+# Ví dụ
+prices = [100, 180, 260, 310, 40, 535, 695]
+profit, buy, sell = max_profit_kadane(prices)
+print(f"Mua ngày {buy}, bán ngày {sell}, lợi nhuận = {profit}")
+\end{verbatim}
+
+\subsection{Ví dụ minh họa}
+
+Cho \(P = [100, 180, 260, 310, 40, 535, 695]\).
+
+\begin{itemize}
+    \item Vét cạn: kiểm tra tất cả các cặp → lớn nhất là \(695 - 40 = 655\) (mua ngày 4, bán ngày 6).
+    \item Chia để trị:
+    \begin{itemize}
+        \item Nửa trái \([100,180,260,310]\): lợi nhuận lớn nhất = \(210\) (mua 100, bán 310).
+        \item Nửa phải \([40,535,695]\): lợi nhuận lớn nhất = \(655\) (mua 40, bán 695).
+        \item Băng qua: min trái = 40, max phải = 695 → lợi nhuận = 655.
+        \item Tốt nhất = 655.
+    \end{itemize}
+    \item Kadane: min\_price theo dõi 100 → 40, max\_profit trở thành 655.
+\end{itemize}
+
+\subsection{Kết luận}
+
+\begin{itemize}
+    \item Lời giải chia để trị chạy trong thời gian \(O(n \log n)\).
+    \item Nó đúng đắn và minh họa mô hình ba trường hợp (trái, phải, băng qua).
+    \item Tuy nhiên, lời giải tối ưu là thuật toán Kadane với \(O(n)\).
+    \item Bài toán này là ví dụ kinh điển cho thấy cách tiếp cận đơn giản hơn (quy hoạch động) vượt trội so với chia để trị.
+\end{itemize}
+
+\section{Bài tập 5}
+
+\subsection{Phát biểu bài toán}
+
+Chúng ta có một tòa nhà \(n\) tầng (đánh số từ 1 đến \(n\) từ dưới lên). Có hai chiếc laptop giống hệt nhau.  
+
+Mục tiêu: Tìm tầng cao nhất mà từ đó thả laptop xuống \textbf{không bị vỡ}, gọi là "ngưỡng bền" (ceiling).  
+
+Tính chất:
+- Nếu laptop vỡ khi thả từ tầng \(f\), nó sẽ vỡ khi thả từ mọi tầng \(\ge f\).
+- Nếu laptop không vỡ khi thả từ tầng \(f\), nó sẽ không vỡ khi thả từ mọi tầng \(\le f\).
+- Một laptop bị vỡ thì không thể dùng lại.
+- Có thể thử thả laptop từ các tầng khác nhau.
+
+Yêu cầu: Tìm thuật toán \textbf{tối ưu số lần thử} trong trường hợp xấu nhất (worst-case), với 2 laptop.
+
+\subsection{Ý tưởng chính}
+
+Với 1 laptop: chỉ có cách thử từng tầng từ dưới lên → \(n\) lần thử trong worst case.
+
+Với 2 laptop: ta có thể "hy sinh" laptop thứ nhất để thu hẹp khoảng tìm kiếm, sau đó dùng laptop thứ hai để thử chi tiết.
+
+Chiến lược tối ưu: \textbf{thử với bước nhảy giảm dần} sao cho tổng số lần thử trong mọi trường hợp là như nhau (hoặc xấp xỉ).
+
+\subsection{Phân tích toán học}
+
+Giả sử ta thực hiện lần thử đầu tiên ở tầng \(x\). Có hai trường hợp:
+
+\begin{enumerate}
+    \item \textbf{Laptop vỡ:} Mất laptop thứ nhất. Phải dùng laptop thứ hai thử từ tầng 1 đến \(x-1\) (từng tầng một) → tối đa \(x-1\) lần thử nữa.  
+    Tổng số lần thử trong trường hợp này: \(1 + (x-1) = x\).
+    
+    \item \textbf{Laptop không vỡ:} Vẫn còn cả hai laptop. Vấn đề trở thành tìm ngưỡng trong khoảng từ \(x+1\) đến \(n\) với 2 laptop.  
+    Nếu ta chọn bước nhảy không đổi, số lần thử sẽ khác nhau giữa các nhánh.
+\end{enumerate}
+
+Để tối ưu hóa trường hợp xấu nhất, ta muốn \textbf{số lần thử trong mọi nhánh là như nhau} (hoặc xấp xỉ).
+
+\subsection{Xây dựng bước nhảy giảm dần}
+
+Gọi \(f(n)\) là số lần thử tối thiểu trong worst case với \(n\) tầng và 2 laptop.
+
+Giả sử lần thử đầu tiên ở tầng \(k\). Khi đó:
+- Nếu vỡ: cần \(k-1\) lần thử tiếp (vì laptop 2 thử từng tầng 1..k-1) → tổng \(k\) lần.
+- Nếu không vỡ: còn lại \(n-k\) tầng với 2 laptop → cần \(f(n-k)\) lần nữa.
+
+Vậy:
+\[
+f(n) = \min_{1 \le k \le n} \max\big(k,\; 1 + f(n-k)\big)
+\]
+
+Đây là công thức quy hoạch động, nhưng ta có thể tìm dạng đóng.
+
+\subsection{Chiến lược bước nhảy giảm dần}
+
+Ta chọn các tầng thử: \(t_1, t_2, t_3, \dots\) sao cho:
+- Lần 1: thử tầng \(d\)
+- Lần 2: thử tầng \(d + (d-1)\)
+- Lần 3: thử tầng \(d + (d-1) + (d-2)\)
+- ...
+Sao cho tổng bước nhảy phủ hết \(n\) tầng.
+
+Tức là:
+\[
+d + (d-1) + (d-2) + \dots + 1 \ge n
+\]
+\[
+\frac{d(d+1)}{2} \ge n
+\]
+
+Khi đó, số lần thử tối đa trong worst case là \(d\).
+
+\subsection{Thuật toán}
+
+\begin{algorithmic}[1]
+\Function{FindCeiling}{$n$}
+    \State Tìm số nguyên \(d\) nhỏ nhất sao cho \(\frac{d(d+1)}{2} \ge n\)
+    \State \(step \gets d\)
+    \State \(current \gets 0\)
+    \State \Comment{Dùng laptop 1 để nhảy bước giảm dần}
+    \While{$step \ge 1$}
+        \State \(current \gets current + step\)
+        \If{$current > n$}
+            \State \(current \gets n\)
+        \EndIf
+        \State Thả laptop 1 từ tầng \(current\)
+        \If{laptop 1 vỡ}
+            \State \Comment{Dùng laptop 2 thử từng tầng từ \(current - step + 1\) đến \(current - 1\)}
+            \For{$floor = current - step + 1$ \textbf{to} $current - 1$}
+                \State Thả laptop 2 từ tầng \(floor\)
+                \If{laptop 2 vỡ}
+                    \State \Return \(floor - 1\) \Comment{ngưỡng bền là tầng liền dưới}
+                \EndIf
+            \EndFor
+            \State \Return \(current - 1\) \Comment{không vỡ ở tầng \(current-1\)}
+        \EndIf
+        \State \(step \gets step - 1\)
+    \EndWhile
+    \State \Return \(n\) \Comment{laptop không vỡ ở tầng cao nhất}
+\EndFunction
+\end{algorithmic}
+
+\subsection{Ví dụ minh họa}
+
+\subsubsection{Ví dụ 1: \(n = 100\) tầng}
+
+Cần tìm \(d\) nhỏ nhất sao cho:
+\[
+\frac{d(d+1)}{2} \ge 100
+\]
+Thử:
+- \(d = 13\): \(13\cdot14/2 = 91 < 100\)
+- \(d = 14\): \(14\cdot15/2 = 105 \ge 100\)
+
+Vậy \(d = 14\).
+
+Các tầng thử với laptop 1: 14, 27, 39, 50, 60, 69, 77, 84, 90, 95, 99, 100 (hoặc đến khi vỡ).
+
+Worst case: laptop 1 vỡ ở lần cuối → mất 14 lần thử.
+
+\subsubsection{Ví dụ 2: \(n = 36\) tầng}
+
+\[
+d = 8 \quad (8\cdot9/2 = 36)
+\]
+Các tầng thử: 8, 15, 21, 26, 30, 33, 35, 36.
+
+Worst case: 8 lần thử.
+
+\subsection{Phân tích độ phức tạp}
+
+Số lần thử tối đa:
+\[
+f(n) = \left\lceil \frac{-1 + \sqrt{1 + 8n}}{2} \right\rceil
+\]
+Do đó:
+\[
+f(n) = \Theta(\sqrt{n})
+\]
+
+So sánh:
+- 1 laptop: \(O(n)\)
+- 2 laptop (thuật toán tối ưu): \(O(\sqrt{n})\)
+
+\subsection{Cài đặt minh họa (Python)}
+
+\begin{verbatim}
+import math
+
+def find_ceiling_two_laptops(n):
+    # Tìm d nhỏ nhất sao cho d(d+1)/2 >= n
+    d = math.ceil((math.sqrt(1 + 8*n) - 1) / 2)
+    
+    step = d
+    current = 0
+    laptop1_broken = False
+    
+    while step >= 1 and not laptop1_broken:
+        current += step
+        if current > n:
+            current = n
+        
+        print(f"Thả laptop 1 ở tầng {current}")
+        
+        # Giả lập: giả sử ngưỡng bền là threshold (ví dụ 45)
+        # Ở đây ta chỉ mô phỏng thuật toán
+        threshold = 45  # giá trị ví dụ
+        
+        if current >= threshold:  # laptop vỡ
+            laptop1_broken = True
+            print(f"  Laptop 1 vỡ ở tầng {current}")
+            # Dùng laptop 2 thử từ current - step + 1 đến current - 1
+            for floor in range(current - step + 1, current):
+                print(f"  Thả laptop 2 ở tầng {floor}")
+                if floor >= threshold:
+                    print(f"    Laptop 2 vỡ ở tầng {floor}")
+                    return floor - 1
+            return current - 1
+        else:
+            print(f"  Laptop 1 không vỡ ở tầng {current}")
+        
+        step -= 1
+    
+    return n
+
+# Chạy thử
+n = 100
+result = find_ceiling_two_laptops(n)
+print(f"Ngưỡng bền là tầng: {result}")
+\end{verbatim}
+
+\subsection{Kết luận}
+
+\begin{itemize}
+    \item Với 2 laptop, ta có thể tìm ngưỡng bền trong \(O(\sqrt{n})\) lần thử.
+    \item Chiến lược tối ưu là \textbf{thử với bước nhảy giảm dần}: \(d, d-1, d-2, \dots, 1\) sao cho tổng \(\ge n\).
+    \item Thuật toán này đảm bảo số lần thử trong worst case là nhỏ nhất có thể.
+    \item Đây là một ứng dụng kinh điển của \textbf{chiến lược giảm để trị (decrease and conquer)}.
+\end{itemize}
+
+\section{Bài tập 6}
+
+\subsection{Phát biểu bài toán}
+
+Cho một sàn hình vuông kích thước \(2^n \times 2^n\) ô (với \(n \ge 1\)). Một ô được chọn làm \textbf{ô thoát nước} (drainage) – ô này sẽ không được lát gạch.  
+
+Có sẵn các viên gạch hình chữ L (tromino) gồm 3 ô, có dạng:
+
+\begin{center}
+\framebox(10,10){} \framebox(10,10){} \\
+\framebox(10,10){} \phantom{\framebox(10,10){}} \qquad
+\framebox(10,10){} \phantom{\framebox(10,10){}} \\
+\framebox(10,10){} \framebox(10,10){} \qquad
+\phantom{\framebox(10,10){}} \framebox(10,10){} \\
+và các phép quay
+\end{center}
+
+\textbf{Yêu cầu:} Tìm cách lát toàn bộ sàn (trừ ô thoát nước) bằng các viên gạch hình chữ L, không chồng lấn, không để trống ô nào khác.
+
+\subsection{Ý tưởng chia để trị}
+
+Đây là bài toán kinh điển áp dụng \textbf{chia để trị (divide and conquer)}.
+
+\subsubsection{Tư tưởng chính}
+\begin{enumerate}
+    \item Chia sàn \(2^n \times 2^n\) thành 4 sàn con, mỗi sàn có kích thước \(2^{n-1} \times 2^{n-1}\).
+    \item Ô thoát nước nằm ở một trong 4 góc phần tư.
+    \item Đặt \textbf{một viên gạch hình chữ L} ở chính giữa sàn lớn, phủ lên 3 ô trung tâm của 3 góc phần tư \textbf{không chứa ô thoát nước}.
+    \item Sau khi đặt viên gạch trung tâm đó, mỗi góc phần tư đều có \textbf{đúng một ô đã được lát sẵn} (hoặc là ô thoát nước, hoặc là ô thuộc viên gạch trung tâm).
+    \item Đệ quy giải bài toán lát cho từng góc phần tư với ô đặc biệt riêng của nó.
+\end{enumerate}
+
+\subsubsection{Minh họa}
+
+Với \(n=2\) (sàn \(4\times4\)), ô thoát nước ở góc trên bên trái:
+
+\begin{verbatim}
+X . . .
+. . . .
+. . . .
+. . . .
+\end{verbatim}
+
+Đặt viên gạch trung tâm che 3 ô ở giữa của 3 góc còn lại:
+
+\begin{verbatim}
+X . . .
+. T T .
+. T . .
+. . . .
+\end{verbatim}
+
+Sau đó mỗi góc phần tư có 1 ô đã được lát (X hoặc T), tiếp tục lát đệ quy.
+
+\subsection{Thuật toán}
+
+\begin{algorithmic}[1]
+\Function{Tile}{$board, n, row, col, missing\_row, missing\_col$}
+    \Comment{$n$ là lũy thừa của 2, kích thước sàn hiện tại là $n \times n$}
+    \Comment{$(row, col)$ là góc trên bên trái của sàn hiện tại}
+    \Comment{$(missing\_row, missing\_col)$ là ô trống (thoát nước) trong sàn này}
+    
+    \If{$n = 1$}
+        \State \Return
+    \EndIf
+    
+    \State $half \gets n/2$
+    \State Xác định góc phần tư chứa ô trống:
+    \State $center\_row \gets row + half - 1$
+    \State $center\_col \gets col + half - 1$
+    
+    \State \Comment{Đặt viên gạch chữ L ở trung tâm, che 3 ô của 3 góc không chứa ô trống}
+    \If{ô trống ở góc trên bên trái}
+        \State Đặt gạch tại $(center\_row+1, center\_col)$, $(center\_row, center\_col+1)$, $(center\_row+1, center\_col+1)$
+        \State \Call{Tile}{$board, half, row, col, missing\_row, missing\_col$}
+        \State \Call{Tile}{$board, half, row, col+half, row+half-1, col+half$}
+        \State \Call{Tile}{$board, half, row+half, col, row+half, col+half-1$}
+        \State \Call{Tile}{$board, half, row+half, col+half, row+half, col+half$}
+    \ElsIf{ô trống ở góc trên bên phải}
+        \State Đặt gạch tại $(center\_row, center\_col)$, $(center\_row+1, center\_col)$, $(center\_row+1, center\_col+1)$
+        \State \Call{Tile}{$board, half, row, col, row+half-1, col+half-1$}
+        \State \Call{Tile}{$board, half, row, col+half, missing\_row, missing\_col$}
+        \State \Call{Tile}{$board, half, row+half, col, row+half, col+half-1$}
+        \State \Call{Tile}{$board, half, row+half, col+half, row+half, col+half$}
+    \ElsIf{ô trống ở góc dưới bên trái}
+        \State Đặt gạch tại $(center\_row, center\_col)$, $(center\_row, center\_col+1)$, $(center\_row+1, center\_col+1)$
+        \State \Call{Tile}{$board, half, row, col, row+half-1, col+half-1$}
+        \State \Call{Tile}{$board, half, row, col+half, row+half-1, col+half$}
+        \State \Call{Tile}{$board, half, row+half, col, missing\_row, missing\_col$}
+        \State \Call{Tile}{$board, half, row+half, col+half, row+half, col+half$}
+    \Else \Comment{ô trống ở góc dưới bên phải}
+        \State Đặt gạch tại $(center\_row, center\_col)$, $(center\_row, center\_col+1)$, $(center\_row+1, center\_col)$
+        \State \Call{Tile}{$board, half, row, col, row+half-1, col+half-1$}
+        \State \Call{Tile}{$board, half, row, col+half, row+half-1, col+half$}
+        \State \Call{Tile}{$board, half, row+half, col, row+half, col+half-1$}
+        \State \Call{Tile}{$board, half, row+half, col+half, missing\_row, missing\_col$}
+    \EndIf
+\EndFunction
+\end{algorithmic}
+
+\subsection{Phân tích độ phức tạp}
+
+Gọi \(T(n)\) là số viên gạch cần dùng (hoặc số thao tác) với sàn kích thước \(2^n \times 2^n\).
+
+Mỗi bước chia làm 4 bài toán con kích thước \(2^{n-1} \times 2^{n-1}\), và đặt 1 viên gạch trung tâm.
+
+\[
+T(n) = 4 \cdot T(n-1) + 1
+\]
+
+Với \(T(1) = 1\) (sàn \(2\times2\) thiếu 1 ô → cần 1 viên gạch).
+
+Giải:
+\[
+T(n) = 4^{n-1} \cdot T(1) + (4^{n-2} + 4^{n-3} + \dots + 1)
+\]
+\[
+T(n) = 4^{n-1} + \frac{4^{n-1} - 1}{3} = \frac{4^n - 1}{3}
+\]
+
+Số ô trên sàn: \(4^n\). Bỏ 1 ô trống, còn \(4^n - 1\) ô. Mỗi viên gạch che 3 ô, nên số gạch là:
+\[
+\frac{4^n - 1}{3}
+\]
+Đúng với kết quả trên.
+
+Vậy thuật toán chạy trong thời gian \(O(4^n)\) – tỷ lệ thuận với số ô, là tối ưu vì phải đặt từng viên gạch.
+
+\subsection{Ví dụ minh họa}
+
+\subsubsection*{\(n = 1\): sàn \(2 \times 2\)}
+
+\begin{verbatim}
+X .    hoặc    . X    hoặc    . .    hoặc    . .
+. .           . .           X .           . X
+\end{verbatim}
+
+Chỉ cần 1 viên gạch hình chữ L che 3 ô còn lại.
+
+\subsubsection*{\(n = 2\): sàn \(4 \times 4\)}
+
+Ô trống ở góc trên bên trái (kí hiệu \(X\)):
+
+\begin{verbatim}
+Bước 1: X . . .
+        . . . .
+        . . . .
+        . . . .
+\end{verbatim}
+
+Đặt gạch trung tâm:
+
+\begin{verbatim}
+X . . .
+. 1 1 .
+. 1 . .
+. . . .
+\end{verbatim}
+
+Sau đó lát đệ quy từng góc. Kết quả cuối cùng:
+
+\begin{verbatim}
+X 2 3 3
+2 2 1 4
+5 1 1 4
+5 5 4 4
+\end{verbatim}
+
+Mỗi số là một viên gạch khác nhau.
+
+\subsection{Cài đặt minh họa (Python)}
+
+\begin{verbatim}
+def tile(board, n, row, col, missing_row, missing_col, tile_id):
+    if n == 1:
+        return tile_id + 1
+    
+    half = n // 2
+    center_row = row + half - 1
+    center_col = col + half - 1
+    
+    # Xác định góc phần tư chứa ô trống
+    missing_quadrant = 0
+    if missing_row <= center_row:
+        if missing_col <= center_col:
+            missing_quadrant = 1  # top-left
+        else:
+            missing_quadrant = 2  # top-right
+    else:
+        if missing_col <= center_col:
+            missing_quadrant = 3  # bottom-left
+        else:
+            missing_quadrant = 4  # bottom-right
+    
+    # Đặt gạch trung tâm
+    if missing_quadrant != 1:
+        board[center_row][center_col] = tile_id
+    if missing_quadrant != 2:
+        board[center_row][center_col + 1] = tile_id
+    if missing_quadrant != 3:
+        board[center_row + 1][center_col] = tile_id
+    if missing_quadrant != 4:
+        board[center_row + 1][center_col + 1] = tile_id
+    
+    tile_id += 1
+    
+    # Đệ quy từng góc
+    # Góc trên bên trái
+    if missing_quadrant == 1:
+        tile_id = tile(board, half, row, col, missing_row, missing_col, tile_id)
+    else:
+        tile_id = tile(board, half, row, col, center_row, center_col, tile_id)
+    
+    # Góc trên bên phải
+    if missing_quadrant == 2:
+        tile_id = tile(board, half, row, col + half, missing_row, missing_col, tile_id)
+    else:
+        tile_id = tile(board, half, row, col + half, center_row, center_col + 1, tile_id)
+    
+    # Góc dưới bên trái
+    if missing_quadrant == 3:
+        tile_id = tile(board, half, row + half, col, missing_row, missing_col, tile_id)
+    else:
+        tile_id = tile(board, half, row + half, col, center_row + 1, center_col, tile_id)
+    
+    # Góc dưới bên phải
+    if missing_quadrant == 4:
+        tile_id = tile(board, half, row + half, col + half, missing_row, missing_col, tile_id)
+    else:
+        tile_id = tile(board, half, row + half, col + half, center_row + 1, center_col + 1, tile_id)
+    
+    return tile_id
+
+# Khởi tạo
+n = 4  # 2^n x 2^n, n=4 -> 16x16
+size = 2 ** n
+board = [[0] * size for _ in range(size)]
+# Ô trống ở (0, 0)
+tile(board, size, 0, 0, 0, 0, 1)
+
+# In kết quả
+for row in board:
+    print(' '.join(f'{x:2d}' for x in row))
+\end{verbatim}
+
+\subsection{Kết luận}
+
+\begin{itemize}
+    \item Bài toán lát gạch hình chữ L là ứng dụng kinh điển của \textbf{chia để trị}.
+    \item Mỗi bước chia sàn thành 4 phần, đặt 1 viên gạch ở trung tâm để tạo "ô trống ảo" cho 3 phần còn lại.
+    \item Số viên gạch cần dùng: \(\frac{4^n - 1}{3}\).
+    \item Độ phức tạp: \(O(4^n)\) – tối ưu vì phải xử lý từng ô.
+\end{itemize}
+
+\end{document}

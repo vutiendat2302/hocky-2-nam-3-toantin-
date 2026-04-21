@@ -9,7 +9,10 @@ public class GCD {
      */
     public int findGcdRecursive(int a, int b) {
         // TODO
-        return 0;
+        if (b == 0) {
+            return a;
+        }
+        return findGcdRecursive(b, a % b);
     }
 
     /**
@@ -20,7 +23,12 @@ public class GCD {
      */
     public int findGcdIterative(int a, int b) {
         // TODO
-        return 0;
+        while (b != 0) {
+            int temp = a;
+            a = b;
+            b = temp % b;
+        }
+        return a;
     }
 
 }

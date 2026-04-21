@@ -13,6 +13,18 @@ public class FastExponentiation {
      */
 
     public void cal(int a, int n) {
+        long result = fastPow(a, n);
+        System.out.println(result);
+    }
 
+    public long fastPow(int a, int n) {
+        if (n == 0) return 1;
+        if (n == 1) return a;
+        long half = fastPow(a, n / 2);
+        if (n % 2 == 0) {
+            return half * half;
+        } else {
+            return half * half * a;
+        }
     }
 }

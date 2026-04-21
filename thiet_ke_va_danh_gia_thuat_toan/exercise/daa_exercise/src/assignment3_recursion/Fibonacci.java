@@ -10,7 +10,10 @@ public class Fibonacci {
 
     public int fibonacciRecursive(int n) {
         // TODO
-        return 0;
+        if (n <= 1) {
+            return n; // n=0 trả về 0, n=1 trả về 1
+        }
+        return fibonacciRecursive(n - 1) + fibonacciRecursive(n - 2);
     }
 
     /**
@@ -21,6 +24,14 @@ public class Fibonacci {
      */
     public int fibonacciIterative(int n) {
         // TODO
-        return 0;
+        if (n <= 1) return n;
+        int b = 1;
+        int a = 0;
+        for (int i = 2; i <= n; i++) {
+            int temp = b;
+            b += a;
+            a = temp;
+        }
+        return b;
     }
 }
