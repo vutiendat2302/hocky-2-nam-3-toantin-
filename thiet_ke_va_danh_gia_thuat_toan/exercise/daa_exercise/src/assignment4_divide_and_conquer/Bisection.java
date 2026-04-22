@@ -30,28 +30,29 @@ public class Bisection {
      */
 
     public void solve(double a, double b, double eps) {
-        if (f(a) * f(b) < 0) {
+        if (f(a) * f(b) >= 0) {
             System.out.println("No Solution");
             return;
         }
+
         double c;
-        double result = 0;
         while (Math.abs(b - a) >= eps) {
             c = (a + b) / 2;
 
-            // Tim duoc nghiem chinh xac
-            if (f(c) == 0.0) {
+            if (Math.abs(f(c)) < 1e-12) {
                 System.out.printf("%.6f\n", c);
                 return;
             }
+
             if (f(a) * f(c) <= 0) {
                 b = c;
             } else {
                 a = c;
             }
         }
-        result = (a + b) / 2;
-        System.out.printf(".%f6 ket qua la: ", result);
+
+        double result = (a + b) / 2;
+        System.out.printf("%.6f\n", result);
     }
 
     public void solveDivide(double a, double b, double eps) {

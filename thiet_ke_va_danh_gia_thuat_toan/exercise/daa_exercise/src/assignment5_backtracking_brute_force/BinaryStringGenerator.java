@@ -17,6 +17,12 @@ public class BinaryStringGenerator {
     }
 
     public void backtracking(String s, int n) {
+        if (s.length() == n) {
+            System.out.println(s);
+            return;
+        }
 
+        backtracking(s + "0", n);
+        backtracking(s + "1", n);
     }
 }
