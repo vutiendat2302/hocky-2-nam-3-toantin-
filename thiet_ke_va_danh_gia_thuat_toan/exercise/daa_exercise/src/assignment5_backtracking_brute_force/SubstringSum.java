@@ -1,5 +1,7 @@
 package assignment5_backtracking_brute_force;
 
+import java.util.*;
+
 public class SubstringSum {
 
     /**
@@ -12,7 +14,35 @@ public class SubstringSum {
      */
 
     public void findSubset(int n, int S) {
+        List<Integer> current = new ArrayList<>();
 
+    }
+
+    public void backtrack(int start, int n, int rem, List<Integer> current) {
+        if (rem == 0) {
+            printList(current);
+            return;
+        }
+
+        for (int i = start; i  < n; i++) {
+            if (i > rem) {
+                break;
+            }
+
+            current.add(i);
+            backtrack(i + 1, n, rem - i, current);
+            current.remove(current.size() - 1);
+        }
+    }
+
+    private void printList(List<Integer> list) {
+        for (int i = 0; i < list.size(); i++) {
+            System.out.print(list.get(i));
+            if (i != list.size() - 1) {
+                System.out.print(" ");
+            }
+        }
+        System.out.println();
     }
 
 
